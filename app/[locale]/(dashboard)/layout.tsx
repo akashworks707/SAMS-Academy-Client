@@ -1,10 +1,15 @@
-import React from 'react'
-import { MainLayout } from '@/components/layout/main-layout'
+import React from "react";
+import { MainLayout } from "@/components/layout/main-layout";
+import ReduxProvider from "@/providers/ReduxProvider";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <MainLayout>{children}</MainLayout>
+  return (
+    <ReduxProvider>
+      <MainLayout>{children}</MainLayout>
+    </ReduxProvider>
+  );
 }

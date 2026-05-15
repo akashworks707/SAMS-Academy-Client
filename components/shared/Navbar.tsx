@@ -4,10 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, LogIn, UserPlus } from "lucide-react";
+import {
+  Bell,
+  Menu,
+  LogIn,
+  UserPlus,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ModeToggle } from "../theme/mode-toggle";
+import { NavbarDropdown } from "./NavbarDropdown";
+import { useUser } from "@/context/UserContext";
 
 const navLinks = [
   { label: "হোম", href: "/" },
@@ -22,6 +32,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const { user, logout } = useUser();
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex h-17.5 max-w-7xl items-center justify-between px-4 md:px-6">
@@ -65,29 +76,41 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {/* Bell */}
+          <div>
+            <ModeToggle />
+          </div>
           <button className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors">
             <Bell className="h-5 w-5" />
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-1 ring-white" />
           </button>
 
-          <Link href="/login">
-            <Button
-              className="hover:cursor-pointer h-9 rounded-md bg-[#0E8F3B] px-5 text-sm font-semibold text-white hover:bg-[#0a7a32] transition-colors"
-              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-            >
-              লগ ইন
-            </Button>
-          </Link>
+          {user ? (
+            NavbarDropdown({
+              user,
+              onLogout: logout,
+            })
+          ) : (
+            <>
+              <Link href="/login">
+                <Button
+                  className="hover:cursor-pointer h-9 rounded-md bg-[#0E8F3B] px-5 text-sm font-semibold text-white hover:bg-[#0a7a32] transition-colors"
+                  style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+                >
+                  লগ ইন
+                </Button>
+              </Link>
 
-          <Link href="/signup">
-            <Button
-              variant="outline"
-              className="hover:cursor-pointer h-9 rounded-md border-[#0E8F3B] px-5 text-sm font-semibold text-[#0E8F3B] hover:bg-[#0E8F3B]/5 transition-colors"
-              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-            >
-              রেজিস্ট্রেশন করুন
-            </Button>
-          </Link>
+              <Link href="/signup">
+                <Button
+                  variant="outline"
+                  className="hover:cursor-pointer h-9 rounded-md border-[#0E8F3B] px-5 text-sm font-semibold text-[#0E8F3B] hover:bg-[#0E8F3B]/5 transition-colors"
+                  style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+                >
+                  রেজিস্ট্রেশন করুন
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
@@ -144,25 +167,64 @@ export default function Navbar() {
                 </nav>
 
                 <div className="mt-auto border-t p-4 flex flex-col gap-2">
-                  <Link href="/login" onClick={() => setMobileOpen(false)}>
-                    <Button
-                      className="hover:cursor-pointer w-full bg-[#0E8F3B] text-white hover:bg-[#0a7a32]"
-                      style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-                    >
-                      <LogIn className="mr-2 h-4 w-4" />
-                      লগ ইন
-                    </Button>
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileOpen(false)}>
-                    <Button
-                      variant="outline"
-                      className="hover:cursor-pointer w-full border-[#0E8F3B] text-[#0E8F3B]"
-                      style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      রেজিস্ট্রেশন করুন
-                    </Button>
-                  </Link>
+                  {user ? (
+                    <div className="flex flex-col gap-2">
+                      <Link
+                        href={
+                          user.role === "STUDENT"
+                            ? "/student/dashboard/my-courses"
+                            : "/staff/dashboard"
+                        }
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start gap-2 rounded-xl"
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </Button>
+                      </Link>
+
+                      <Button
+                        variant="destructive"
+                        className="w-full justify-start gap-2 rounded-xl"
+                        onClick={async () => {
+                          setMobileOpen(false);
+                          await logout();
+                        }}
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Link href="/login" onClick={() => setMobileOpen(false)}>
+                        <Button
+                          className="hover:cursor-pointer w-full bg-[#0E8F3B] text-white hover:bg-[#0a7a32]"
+                          style={{
+                            fontFamily: "'Noto Sans Bengali', sans-serif",
+                          }}
+                        >
+                          <LogIn className="mr-2 h-4 w-4" />
+                          লগ ইন
+                        </Button>
+                      </Link>
+                      <Link href="/signup" onClick={() => setMobileOpen(false)}>
+                        <Button
+                          variant="outline"
+                          className="hover:cursor-pointer w-full border-[#0E8F3B] text-[#0E8F3B]"
+                          style={{
+                            fontFamily: "'Noto Sans Bengali', sans-serif",
+                          }}
+                        >
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          রেজিস্ট্রেশন করুন
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

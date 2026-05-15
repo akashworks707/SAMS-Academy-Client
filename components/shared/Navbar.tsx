@@ -34,7 +34,16 @@ export default function Navbar() {
 
   const { user, logout } = useUser();
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
+    <header
+      className="
+    sticky top-0 z-50 w-full
+    border-b border-slate-200/80 dark:border-slate-800
+    bg-white/90 dark:bg-slate-950/85
+    backdrop-blur-xl
+    shadow-sm dark:shadow-black/20
+    transition-colors duration-300
+  "
+    >
       <div className="mx-auto flex h-17.5 max-w-7xl items-center justify-between px-4 md:px-6">
         <Link
           href="/"
@@ -59,9 +68,11 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative px-3 py-2 text-[15px] font-medium transition-colors duration-150",
-                  "hover:text-[#0E8F3B]",
-                  active ? "text-[#0E8F3B]" : "text-gray-700",
+                  "relative px-3 py-2 text-[15px] font-medium transition-colors duration-200",
+                  "hover:text-[#0E8F3B] dark:hover:text-emerald-400",
+                  active
+                    ? "text-[#0E8F3B] dark:text-emerald-400"
+                    : "text-slate-700 dark:text-slate-300",
                 )}
                 style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
               >
@@ -79,9 +90,12 @@ export default function Navbar() {
           <div>
             <ModeToggle />
           </div>
-          <button className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors">
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-1 ring-white" />
+          <button
+            className="relative p-2 text-slate-500 hover:text-slate-700
+dark:text-slate-400 dark:hover:text-white transition-colors"
+          >
+            <Bell className="h-5 w-5 " />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-1 ring-white dark:ring-slate-950" />
           </button>
 
           {user ? (
@@ -121,16 +135,38 @@ export default function Navbar() {
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger>
-              <Button size="icon" variant="ghost" className="rounded-lg">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="
+                rounded-xl
+                text-slate-700 dark:text-slate-300
+                hover:bg-slate-100 dark:hover:bg-slate-800
+               "
+              >
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-72 p-0 bg-white">
+            <SheetContent
+              side="right"
+              className="
+              w-72 p-0
+              bg-white dark:bg-slate-950
+              border-l border-slate-200 dark:border-slate-800
+            "
+            >
               <div className="flex h-full flex-col">
-                <div className="flex items-center gap-3 border-b px-5 py-4">
-                  <Link href="/" className="flex items-center gap-3 shrink-0">
-                    <div className="relative h-20 w-60 overflow-hidden">
+                <div className="flex items-center gap-3 border-b px-5">
+                  <Link href="/" className="flex items-center mx-auto gap-3 shrink-0">
+                    <div
+                      className="
+                relative h-24 w-48 overflow-hidden
+                rounded-xl
+                transition-transform duration-300
+                hover:scale-[1.02]
+              "
+                    >
                       <Image
                         src="/logos/sams-logo-bn.jpeg"
                         alt="SAMS Academy Logo"
@@ -153,8 +189,8 @@ export default function Navbar() {
                         className={cn(
                           "rounded-lg px-4 py-3 text-sm font-medium transition-all",
                           active
-                            ? "bg-[#0E8F3B]/10 text-[#0E8F3B]"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                            ? "bg-[#0E8F3B]/10 text-[#0E8F3B] dark:bg-emerald-500/15 dark:text-emerald-400"
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white",
                         )}
                         style={{
                           fontFamily: "'Noto Sans Bengali', sans-serif",

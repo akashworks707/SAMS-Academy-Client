@@ -99,10 +99,9 @@ dark:text-slate-400 dark:hover:text-white transition-colors"
           </button>
 
           {user ? (
-            NavbarDropdown({
-              user,
-              onLogout: logout,
-            })
+            <>
+            <NavbarDropdown user={user} onLogout={logout} />
+            </>
           ) : (
             <>
               <Link href="/login">

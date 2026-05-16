@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use server"
 
@@ -5,21 +6,33 @@ import config from "@/config";
 
 export const registerUser = async (formData: FormData) => {
   try {
-    // ✅ FormData → plain object
-    const data = Object.fromEntries(formData.entries());
-
     const res = await fetch(`${config.baseUrl}/user/create-user`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data)
+      body: formData,
     });
 
     const result = await res.json();
-    return result;
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: "Registration failed" };
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: result.message || "Registration failed",
+        data: null,
+      };
+    }
+
+    return {
+      success: true,
+      message: result.message || "Registration successful",
+      data: result.data,
+      token: result.data?.token,
+    };
+  } catch (error: any) {
+    console.error("[registerUser] Error:", error);
+    return {
+      success: false,
+      message: error.message || "Registration failed",
+      data: null,
+    };
   }
 };

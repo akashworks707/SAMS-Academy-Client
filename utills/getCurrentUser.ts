@@ -17,8 +17,10 @@ export const getCurrentUser = async () => {
 
     return decoded?.user || {
       _id: decoded.userId,
+      name: decoded.name,
       email: decoded.email,
       role: decoded.role,
+      picture: decoded.picture,
     };
   } catch (error) {
     return null;

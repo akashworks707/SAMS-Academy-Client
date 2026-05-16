@@ -8,8 +8,10 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 type User = {
   _id: string;
+  name?: string;
   email: string;
   role: "STUDENT" | "ADMIN" | "TEACHER";
+  picture?: string;
 };
 
 type UserContextType = {
@@ -24,7 +26,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 page reload / route change handler
   useEffect(() => {
     const hydrateUser = async () => {
       const currentUser = await getCurrentUser();

@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Toaster } from "sonner";
+import Providers from "./providers";
 
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -31,19 +32,21 @@ export default async function LocaleLayout({
   return (
     <html>
       <body className={`${geist.className} ${geistMono.className} antialiased`}>
-        <UserProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <NextIntlClientProvider messages={messages}>
-              <Toaster richColors={true} position="top-center" />
-              {children}
-            </NextIntlClientProvider>
-          </ThemeProvider>
-        </UserProvider>
+        <Providers>
+          <UserProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <NextIntlClientProvider messages={messages}>
+                <Toaster richColors={true} position="top-center" />
+                {children}
+              </NextIntlClientProvider>
+            </ThemeProvider>
+          </UserProvider>
+        </Providers>
       </body>
     </html>
   );

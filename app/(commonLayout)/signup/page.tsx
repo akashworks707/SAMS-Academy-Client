@@ -1,11 +1,11 @@
 import React from "react";
-import SignupPage from "@/components/public-modules/Auth/signupPage";
+import Signup from "@/components/public-modules/Auth/signupPage";
 
 const page = () => {
   return (
     <>
-      <SignupPage />
+      <Signup />
     </>
-  )
-}
+  );
+};
 export default page;

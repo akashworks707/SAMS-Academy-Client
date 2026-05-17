@@ -80,7 +80,7 @@ export default function Login() {
       login(res.user.user);
       const role = res.user.user.role;
       if (role === "ADMIN" || role === "TEACHER" || role === "STUDENT") {
-        router.push("/bn/dashboard");
+        router.push("/admin");
       } else {
         router.push("/");
       }
@@ -100,7 +100,7 @@ export default function Login() {
     >
       <div
         className="
-          w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl flex
+          w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex
           border border-slate-300 dark:border-slate-700
         "
         style={{ minHeight: 540 }}
@@ -347,7 +347,7 @@ export default function Login() {
 
           {/* Sign-up link */}
           <p
-            className="text-center text-sm text-slate-500 dark:text-slate-400 mt-5"
+            className="text-center text-sm text-slate-800 dark:text-slate-400 mt-5"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             {bn.noAccount}{" "}
@@ -363,7 +363,7 @@ export default function Login() {
 
       {/* Footer */}
       <p
-        className="mt-5 text-xs text-slate-400 dark:text-slate-600"
+        className="mt-5 text-xs text-slate-700 dark:text-slate-300"
         style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
       >
         {bn.footer}

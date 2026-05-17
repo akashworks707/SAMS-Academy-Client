@@ -25,6 +25,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import config from "@/config";
 
+const optionalNumber = z
+  .number()
+  .optional()
+  .or(z.nan())
+  .transform((v: any) => (isNaN(v) ? undefined : v));
+
 const createSignupSchema = () =>
   z
     .object({
@@ -42,13 +48,13 @@ const createSignupSchema = () =>
       guardianPhone: z.string().optional(),
       dateOfBirth: z.string().optional(),
       section: z.string().optional(),
-      roll: z.number().optional(),
+      roll: optionalNumber,
+      experience: optionalNumber,
+      salary: optionalNumber,
 
       // Teacher fields
       qualification: z.string().optional(),
-      experience: z.number().optional(),
       designation: z.string().optional(),
-      salary: z.number().optional(),
       bio: z.string().optional(),
 
       // Address fields (for both)
@@ -69,11 +75,13 @@ const createSignupSchema = () =>
     .refine(
       (data) => {
         if (data.role === "STUDENT") {
-          return data.guardianName && data.guardianPhone;
+          return !!data.guardianName && !!data.guardianPhone;
         }
+
         if (data.role === "TEACHER") {
-          return data.qualification;
+          return !!data.qualification;
         }
+
         return true;
       },
       {
@@ -146,8 +154,8 @@ export default function Signup() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const [picturePreview, setPicturePreview] = useState<string | null>(null);
-const [selectedPicture, setSelectedPicture] = useState<File | null>(null);
+  const [picturePreview, setPicturePreview] = useState<string | null>(null);
+  const [selectedPicture, setSelectedPicture] = useState<File | null>(null);
 
   const schema = createSignupSchema();
   const {
@@ -156,7 +164,7 @@ const [selectedPicture, setSelectedPicture] = useState<File | null>(null);
     watch,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormType>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema as any),
     defaultValues: {
       role: "STUDENT",
       agreeTerms: false,
@@ -165,37 +173,33 @@ const [selectedPicture, setSelectedPicture] = useState<File | null>(null);
 
   const selectedRole = watch("role");
 
-const handlePictureChange = (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = e.target.files?.[0];
+  const handlePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  if (picturePreview) {
-    URL.revokeObjectURL(picturePreview);
-  }
+    if (picturePreview) {
+      URL.revokeObjectURL(picturePreview);
+    }
 
-  setSelectedPicture(file);
-  setPicturePreview(URL.createObjectURL(file));
-};
+    setSelectedPicture(file);
+    setPicturePreview(URL.createObjectURL(file));
+  };
 
   const removeSelectedPicture = () => {
-  if (picturePreview) {
-    URL.revokeObjectURL(picturePreview);
-  }
+    if (picturePreview) {
+      URL.revokeObjectURL(picturePreview);
+    }
 
-  setPicturePreview(null);
-  setSelectedPicture(null);
+    setPicturePreview(null);
+    setSelectedPicture(null);
 
-  const input = document.getElementById(
-    "picture"
-  ) as HTMLInputElement;
+    const input = document.getElementById("picture") as HTMLInputElement;
 
-  if (input) {
-    input.value = "";
-  }
-};
+    if (input) {
+      input.value = "";
+    }
+  };
 
   const onSubmit = async (data: SignupFormType) => {
     try {
@@ -219,22 +223,23 @@ const handlePictureChange = (
       if (data.role === "STUDENT") {
         payload.guardianName = data.guardianName;
         payload.guardianPhone = data.guardianPhone;
-        if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth;
-        if (data.section) payload.section = data.section;
-        if (data.roll) payload.roll = data.roll;
+        if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
+        if (data.section) payload.section = data.section ?? "";
+        if (data.roll !== undefined) payload.roll = data.roll;
       }
 
       if (data.role === "TEACHER") {
         payload.qualification = data.qualification;
-        if (data.experience) payload.experience = data.experience;
-        if (data.designation) payload.designation = data.designation;
-        if (data.salary) payload.salary = data.salary;
-        if (data.bio) payload.bio = data.bio;
-        if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth;
+        if (data.designation) payload.designation = data.designation ?? "";
+        if (data.experience !== undefined) payload.experience = data.experience;
+
+        if (data.salary !== undefined) payload.salary = data.salary;
+        if (data.bio) payload.bio = data.bio ?? "";
+        if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
       }
 
       // Handle picture upload
-     const pictureFile = selectedPicture;
+      const pictureFile = selectedPicture;
 
       const formData = new FormData();
       Object.keys(payload).forEach((key) => {
@@ -473,7 +478,7 @@ const handlePictureChange = (
               </div>
 
               <div className="space-y-1">
-                <FieldLabel>Union</FieldLabel>
+                <FieldLabel>Union/Ward</FieldLabel>
                 <TextField placeholder="Union" {...register("union")} />
               </div>
             </div>

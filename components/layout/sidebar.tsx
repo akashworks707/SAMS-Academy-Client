@@ -77,13 +77,13 @@ const NavItems = () => {
   const items: NavItem[] = [
     {
       key: "dashboard",
-      href: "/dashboard",
+      href: "/admin",
       icon: <LayoutDashboard className="w-5 h-5" />,
       label: t("dashboard"),
     },
     {
       key: "classes",
-      href: "/classes",
+      href: "/admin/classes",
       icon: <BookOpen className="w-5 h-5" />,
       label: t("classes"),
     },
@@ -95,25 +95,25 @@ const NavItems = () => {
     },
     {
       key: "subjects",
-      href: "/subjects",
+      href: "/admin/subjects",
       icon: <BookMarked className="w-5 h-5" />,
       label: t("subjects"),
     },
     {
       key: "students",
-      href: "/students",
+      href: "/admin/students",
       icon: <UserCheck className="w-5 h-5" />,
       label: t("students"),
     },
     {
       key: "payments",
-      href: "/payments",
+      href: "/admin/payments",
       icon: <CreditCard className="w-5 h-5" />,
       label: t("student_payments"),
     },
     {
       key: "commission",
-      href: "/commission",
+      href: "/admin/commission",
       icon: <TrendingUp className="w-5 h-5" />,
       label: t("marketing_commission"),
     },

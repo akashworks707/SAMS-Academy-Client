@@ -31,9 +31,9 @@ export function NavbarDropdown({ user, onLogout }: NavbarDropdownProps) {
 
   const dashboardRoute =
     user.role === "STUDENT"
-      ? "/student/dashboard/my-courses"
+      ? "/admin/courses"
       : user.role === "TEACHER"
-        ? "/teacher/dashboard"
+        ? "/admin/dashboard"
         : "/admin/dashboard";
 
   const handleLogout = async () => {

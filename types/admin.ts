@@ -22,7 +22,6 @@ export interface CourseFormData {
   status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
 }
 
-// Enrollment Types
 export interface IEnrollment {
   _id: string;
   studentId: string;
@@ -42,7 +41,6 @@ export interface EnrollmentFormData {
   grade?: string;
 }
 
-// Recorded Video Types
 export interface IRecordedVideo {
   _id: string;
   title: string;
@@ -69,7 +67,6 @@ export interface RecordedVideoFormData {
   status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
 }
 
-// Zoom Meeting Types
 export interface IZoomMeeting {
   _id: string;
   meetingId: number;
@@ -97,7 +94,6 @@ export interface ZoomMeetingFormData {
   status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
-// Table Types
 export interface PaginationParams {
   page: number;
   limit: number;
@@ -130,7 +126,6 @@ export interface ActionMenuItem {
   variant?: "default" | "destructive" | "secondary";
 }
 
-// Stats Types
 export interface StatCard {
   title: string;
   value: string | number;
@@ -142,7 +137,6 @@ export interface StatCard {
   bgColor?: string;
 }
 
-// Filter Types
 export interface FilterOption {
   label: string;
   value: string;

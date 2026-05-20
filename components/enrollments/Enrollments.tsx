@@ -11,7 +11,6 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EnrollmentForm } from "@/components/enrollments/enrollment-form";
 import {
   IEnrollment,
-  EnrollmentFormData,
   SearchFilters,
   TableColumn,
   ICourse,
@@ -34,6 +33,10 @@ import {
   useUpdateEnrollmentMutation,
 } from "@/redux/features/enrollment/enrollment.api";
 import { useGetAllCoursesQuery } from "@/redux/features/course/course.api";
+import {
+  useGetAllStudentsQuery,
+} from "@/redux/features/user/user.api";
+import { IUser } from "@/types/user";
 
 const enrollmentColumns: TableColumn<IEnrollment>[] = [
   {
@@ -115,21 +118,30 @@ export default function Enrollments() {
   const totalCount = enrollmentsData?.totalCount || 0;
   const courses = coursesData?.data || [];
 
-  const mockStudents = [
-    { _id: "1", name: "John Doe" },
-    { _id: "2", name: "Jane Smith" },
-    { _id: "3", name: "Mike Johnson" },
-    { _id: "4", name: "Sarah Williams" },
-  ];
+  const { data: studentsData } = useGetAllStudentsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const students: IUser[] = studentsData?.data || [];
 
   const handleSearch = useCallback((newFilters: SearchFilters) => {
     setFilters(newFilters);
     setPage(1);
   }, []);
 
-  const handleCreateEnrollment = async (formData: EnrollmentFormData) => {
+  const handleCreateEnrollment = async (formData: {
+    student: string;
+    class: string;
+    status?: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+    progress?: number;
+  }) => {
     try {
-      await createEnrollment(formData).unwrap();
+      await createEnrollment({
+        student: formData.student,
+        course: formData.class,
+        status: formData.status,
+        progress: formData.progress,
+      }).unwrap();
       toast({
         title: "Success",
         description: "Enrollment created successfully",
@@ -144,12 +156,22 @@ export default function Enrollments() {
     }
   };
 
-  const handleUpdateEnrollment = async (formData: EnrollmentFormData) => {
+  const handleUpdateEnrollment = async (formData: {
+    student: string;
+    class: string;
+    status?: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+    progress?: number;
+  }) => {
     if (!selectedEnrollment) return;
     try {
       await updateEnrollment({
         id: selectedEnrollment._id,
-        data: formData,
+        data: {
+          student: formData.student,
+          course: formData.class,
+          status: formData.status,
+          progress: formData.progress,
+        },
       }).unwrap();
       toast({
         title: "Success",
@@ -299,7 +321,10 @@ export default function Enrollments() {
       >
         <EnrollmentForm
           enrollment={selectedEnrollment || undefined}
-          students={mockStudents}
+          students={students.map((student) => ({
+            _id: student?._id ?? "",
+            name: student.name ?? "",
+          }))}
           courses={courses.map((c: ICourse) => ({
             _id: c._id,
             title: c.title,

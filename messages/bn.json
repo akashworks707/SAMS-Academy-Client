@@ -1,5 +1,9 @@
 {
   "dashboard": "ড্যাশবোর্ড",
+  "courses": "কোর্সসমূহ",
+  "enrollments": "এনরোলমেন্টসমূহ",
+  "recorded_videos": "রেকর্ডেড ভিডিওসমূহ",
+  "zoom_meetings": "জুম মিটিংসমূহ",
   "classes": "ক্লাস",
   "teachers": "শিক্ষক",
   "subjects": "বিষয়",

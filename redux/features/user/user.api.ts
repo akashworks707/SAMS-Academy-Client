@@ -80,6 +80,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       providesTags: ["USERS"],
     }),
+    getAllStudents: builder.query<GetAllUsersResponse, GetQueryParams>({
+      query: (params) => ({
+        url: "/user/all-students",
+        method: "GET",
+        params: params,
+      }),
+      providesTags: ["USERS"],
+    }),
 
     getMe: builder.query<IUserApiResponse, void>({
       query: () => ({
@@ -119,6 +127,7 @@ export const {
   useGetSingleUserQuery,
   useUpdateUserPermissionsMutation,
   useGetAllUsersQuery,
+  useGetAllStudentsQuery,
   useGetMeQuery,
   useGetAllTrashUsersQuery,
   useTrashUpdateUserMutation,

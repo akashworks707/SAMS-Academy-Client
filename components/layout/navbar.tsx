@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Menu,
@@ -26,6 +26,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
+import { useGetMeQuery } from "@/redux/features/user/user.api";
+import { logoutUser } from "@/utills/logoutUser";
+import Image from "next/image";
+import { useUser } from "@/context/UserContext";
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -37,6 +41,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useUser();
 
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -128,23 +133,85 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <button className="flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-400 to-purple-600" />
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300 hidden sm:inline">
-                {t("admin")}
-              </span>
+              {user?.picture ? (
+                <Image
+                  src={user.picture}
+                  alt={user.name || "User"}
+                  width={36}
+                  height={36}
+                  priority
+                  quality={90}
+                  className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-linear-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              )}
+
+              <div className="hidden sm:flex flex-col items-start leading-tight">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  {user?.name || "User"}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {user?.role}
+                </span>
+              </div>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>
+
+          <DropdownMenuContent
+            align="end"
+            className="w-64 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl"
+          >
+            {/* User Info */}
+            <div className="px-4 py-3">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {user?.name}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {user?.email}
+              </p>
+            </div>
+
+            <DropdownMenuSeparator />
+
+            {/* Profile */}
+            <DropdownMenuItem
+              onClick={() => router.push("/profile")}
+              className="cursor-pointer"
+            >
               <User className="w-4 h-4 mr-2" />
               {t("profile")}
             </DropdownMenuItem>
-            <DropdownMenuItem>
+
+            {/* Dashboard */}
+            <DropdownMenuItem
+              onClick={() => {
+                if (user?.role === "ADMIN") {
+                  router.push("/admin");
+                } else if (user?.role === "TEACHER") {
+                  router.push("/admin/teachers");
+                } else {
+                  router.push("/");
+                }
+              }}
+              className="cursor-pointer"
+            >
               <Settings className="w-4 h-4 mr-2" />
-              {t("settings")}
+              Dashboard
             </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
+
+            {/* Logout */}
+            <DropdownMenuItem
+              className="cursor-pointer text-red-600 focus:text-red-600"
+              onClick={async () => {
+                await logoutUser();
+                router.push("/login");
+              }}
+            >
               <LogOut className="w-4 h-4 mr-2" />
               {t("logout")}
             </DropdownMenuItem>

@@ -1,4 +1,8 @@
 {
+  "courses": "Courses",
+"enrollments": "Enrollments",
+"recorded_videos": "Recorded Videos",
+"zoom_meetings": "Zoom Meetings",
   "dashboard": "Dashboard",
   "classes": "Classes",
   "teachers": "Teachers",

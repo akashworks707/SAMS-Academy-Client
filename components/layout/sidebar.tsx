@@ -14,10 +14,14 @@ import {
   CreditCard,
   TrendingUp,
   X,
+  UserPlus,
+  PlayCircle,
+  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Image from "next/image";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 interface NavItem {
   key: string;
@@ -77,7 +81,7 @@ const NavItems = () => {
   const items: NavItem[] = [
     {
       key: "dashboard",
-      href: "/admin",
+      href: "/admin/dashboard",
       icon: <LayoutDashboard className="w-5 h-5" />,
       label: t("dashboard"),
     },
@@ -88,10 +92,10 @@ const NavItems = () => {
       label: t("classes"),
     },
     {
-      key: "teachers",
-      href: "/teachers",
-      icon: <Users className="w-5 h-5" />,
-      label: t("teachers"),
+      key: "courses",
+      href: "/admin/courses",
+      icon: <BookMarked className="w-5 h-5" />,
+      label: t("courses"),
     },
     {
       key: "subjects",
@@ -100,10 +104,22 @@ const NavItems = () => {
       label: t("subjects"),
     },
     {
+      key: "teachers",
+      href: "/admin/teachers",
+      icon: <Users className="w-5 h-5" />,
+      label: t("teachers"),
+    },
+    {
       key: "students",
       href: "/admin/students",
       icon: <UserCheck className="w-5 h-5" />,
       label: t("students"),
+    },
+    {
+      key: "enrollments",
+      href: "/admin/enrollments",
+      icon: <UserPlus className="w-5 h-5" />,
+      label: t("enrollments"),
     },
     {
       key: "payments",
@@ -116,6 +132,18 @@ const NavItems = () => {
       href: "/admin/commission",
       icon: <TrendingUp className="w-5 h-5" />,
       label: t("marketing_commission"),
+    },
+    {
+      key: "videos",
+      href: "/admin/videos",
+      icon: <PlayCircle className="w-5 h-5" />,
+      label: t("recorded_videos"),
+    },
+    {
+      key: "zoom",
+      href: "/admin/zoom",
+      icon: <Video className="w-5 h-5" />,
+      label: t("zoom_meetings"),
     },
   ];
 
@@ -162,10 +190,13 @@ const ProfileCard = () => {
 const SidebarContent = () => {
   return (
     <>
-      <SidebarLogo />
+    <SidebarLogo />
+    <ScrollArea className="max-h-[75vh]">
       <NavItems />
+      <ScrollBar orientation="vertical" />
+    </ScrollArea>
       <ProfileCard />
-    </>
+      </>
   );
 };
 

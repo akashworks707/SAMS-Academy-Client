@@ -34,11 +34,11 @@ export function GoogleAuthButton() {
       login(result.data.user);
 
       if (result.data.user.role === "ADMIN") {
-        router.push("/bn/dashboard");
+        router.push("/admin");
       } else if (result.data.user.role === "TEACHER") {
-        router.push("/en/teacher");
+        router.push("/");
       } else {
-        router.push("/bn/student/dashboard");
+        router.push("/");
       }
     } catch {
       toast.error("Google login failed");

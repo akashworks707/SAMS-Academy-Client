@@ -104,7 +104,7 @@ export default function DashboardOverview() {
     },
     {
       title: "Total Views",
-      value: videos.reduce((sum, v) => sum + v?.viewCount, 0),
+      value: videos.reduce((sum, v) => sum + Number(v?.viewCount ?? 0), 0),
       total: "video views",
       icon: <Eye className="h-6 w-6" />,
       href: "/admin/videos",

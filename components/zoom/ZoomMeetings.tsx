@@ -16,13 +16,14 @@ import {
   ICourse,
 } from "@/types/admin";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Video, Users, Clock, Eye, Plus, ExternalLink } from "lucide-react";
+import { Video, Clock, Eye, Plus, ExternalLink } from "lucide-react";
 import {
   useCreateMeetingMutation,
   useGetMeetingsQuery,
 } from "@/redux/features/zoom/zoom.api";
 import { useGetAllCoursesQuery } from "@/redux/features/course/course.api";
+import { toast } from "sonner";
+import { ZoomDetailsModal } from "./ZoomDetailsModal";
 
 const meetingColumns: TableColumn<IZoomMeeting>[] = [
   {
@@ -35,6 +36,7 @@ const meetingColumns: TableColumn<IZoomMeeting>[] = [
     header: "Course",
     accessor: "courseId",
     width: "15%",
+    cell: (data: IZoomMeeting) => data.classTitle,
   },
   {
     header: "Start Time",
@@ -49,17 +51,17 @@ const meetingColumns: TableColumn<IZoomMeeting>[] = [
     width: "10%",
     cell: (data: IZoomMeeting) => `${data.duration} min`,
   },
-  {
-    header: "Participants",
-    accessor: "participantCount",
-    width: "10%",
-    cell: (data: IZoomMeeting) => (
-      <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-muted-foreground" />
-        {data.participantCount}
-      </div>
-    ),
-  },
+  // {
+  //   header: "Participants",
+  //   accessor: "participantCount",
+  //   width: "10%",
+  //   cell: (data: IZoomMeeting) => (
+  //     <div className="flex items-center gap-2">
+  //       <Users className="h-4 w-4 text-muted-foreground" />
+  //       {data.participantCount}
+  //     </div>
+  //   ),
+  // },
   {
     header: "Status",
     accessor: "status",
@@ -81,16 +83,20 @@ const meetingColumns: TableColumn<IZoomMeeting>[] = [
 ];
 
 export default function ZoomMeetings() {
-  const { toast } = useToast();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   // const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<IZoomMeeting | null>(
     null,
   );
 
-  const { data: meetingsData, isLoading } = useGetMeetingsQuery({
+  const {
+    data: meetingsData,
+    refetch,
+    isLoading,
+  } = useGetMeetingsQuery({
     page,
     limit: 10,
     status: filters.status,
@@ -124,17 +130,18 @@ export default function ZoomMeetings() {
 
   const handleCreateMeeting = async (formData: ZoomMeetingFormData) => {
     try {
-      await createMeeting(formData).unwrap();
-      toast({
-        title: "Success",
-        description: "Meeting scheduled successfully",
-      });
-      setIsFormOpen(false);
+      const res = await createMeeting(formData).unwrap();
+
+      if (res) {
+        toast.success("Successfully scheduled meeting", {
+          description: "The Zoom meeting has been created.",
+        });
+        refetch();
+        setIsFormOpen(false);
+      }
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast("Error", {
         description: error.data?.message || "Failed to schedule meeting",
-        variant: "destructive",
       });
     }
   };
@@ -186,10 +193,6 @@ export default function ZoomMeetings() {
   const completedMeetings = meetings.filter(
     (m) => m.status === "COMPLETED",
   ).length;
-  const totalParticipants = meetings.reduce(
-    (sum, m) => sum + m.participantCount,
-    0,
-  );
 
   const stats = [
     {
@@ -213,13 +216,6 @@ export default function ZoomMeetings() {
       bgColor: "bg-green-50 dark:bg-green-950",
       textColor: "text-green-600 dark:text-green-400",
     },
-    {
-      title: "Total Participants",
-      value: totalParticipants.toLocaleString(),
-      icon: <Users className="h-6 w-6" />,
-      bgColor: "bg-purple-50 dark:bg-purple-950",
-      textColor: "text-purple-600 dark:text-purple-400",
-    },
   ];
 
   return (
@@ -238,7 +234,7 @@ export default function ZoomMeetings() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat, idx) => (
           <StatsCard key={idx} {...stat} />
         ))}
@@ -271,7 +267,8 @@ export default function ZoomMeetings() {
                 label: "View Details",
                 icon: <Eye className="h-4 w-4" />,
                 onClick: () => {
-                  // Handle view
+                  setSelectedMeeting(meeting);
+                  setIsDetailsOpen(true);
                 },
               },
               // {
@@ -320,6 +317,16 @@ export default function ZoomMeetings() {
           onSubmit={handleCreateMeeting}
         />
       </FormDialog>
+
+      {/* View Details Modal */}
+      <ZoomDetailsModal
+        meeting={selectedMeeting}
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedMeeting(null);
+        }}
+      />
 
       {/* Delete Confirmation */}
       {/* <ConfirmDialog

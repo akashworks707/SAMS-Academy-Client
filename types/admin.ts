@@ -27,6 +27,13 @@ export interface IEnrollment {
   _id: string;
   studentId: string;
   courseId: string;
+  student: {
+    _id: string;
+    name: string;
+  };
+  progress: number;
+  course: ICourse;
+  class?: string;
   enrollmentDate: string;
   status: "ACTIVE" | "INACTIVE" | "COMPLETED" | "DROPPED";
   grade?: string;
@@ -42,27 +49,10 @@ export interface EnrollmentFormData {
   grade?: string;
 }
 
-// Recorded Video Types
-export interface IRecordedVideo {
-  _id: string;
-  title: string;
-  description: string;
-  courseId: string;
-  videoUrl: string;
-  duration: number;
-  uploadedAt: string;
-  instructor?: string;
-  viewCount: number;
-  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
-  isDeleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface RecordedVideoFormData {
   title: string;
   description: string;
-  courseId: string;
+  course: string;
   videoUrl: string;
   duration: number;
   instructor?: string;
@@ -74,6 +64,12 @@ export interface IZoomMeeting {
   _id: string;
   meetingId: number;
   topic: string;
+  hostEmail?: string;
+  hostId?: string;
+  startUrl?: string;
+  timezone?: string;
+  password?: string;
+  classTitle: string;
   description?: string;
   startTime: string;
   duration: number;
@@ -89,6 +85,7 @@ export interface IZoomMeeting {
 
 export interface ZoomMeetingFormData {
   topic: string;
+  title: string;
   description?: string;
   startTime: string;
   duration: number;
@@ -155,4 +152,49 @@ export interface SearchFilters {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   [key: string]: any;
+}
+
+export type RecordedVideoStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "ARCHIVED"
+  | "DELETED";
+
+export interface IRecordedVideo {
+  _id: string;
+  course: string | { _id: string; title: string };
+  title: string;
+  description: string;
+  viewCount?: number;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  status: RecordedVideoStatus;
+  createdBy?: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RecordedVideoFormData {
+  title: string;
+  description: string;
+  course: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+}
+
+export function getCourseId(course: IRecordedVideo["course"]): string {
+  if (!course) return "";
+  return typeof course === "string" ? course : course._id;
+}
+
+export function getCourseTitle(
+  course: IRecordedVideo["course"],
+  courses: Array<{ _id: string; title: string }>,
+): string {
+  if (!course) return "—";
+  if (typeof course === "object" && course.title) return course.title;
+  const found = courses.find((c) => c._id === course);
+  return found?.title ?? (typeof course === "string" ? course : "—");
 }

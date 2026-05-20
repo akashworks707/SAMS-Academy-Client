@@ -15,10 +15,29 @@ import {
   RecordedVideoFormData,
   SearchFilters,
   TableColumn,
+  getCourseTitle,
 } from "@/types/admin";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Film, Play, Eye, Edit, Trash2, Plus, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import {
+  Film,
+  Play,
+  Archive,
+  Edit,
+  Trash2,
+  Plus,
+  RotateCcw,
+  ExternalLink,
+  Eye,
+} from "lucide-react";
 import {
   useCreateRecordedVideoMutation,
   useDeleteRecordedVideoMutation,
@@ -26,68 +45,221 @@ import {
   useUpdateRecordedVideoMutation,
 } from "@/redux/features/recordedVideo/recordedVideo.api";
 import { useGetAllCoursesQuery } from "@/redux/features/course/course.api";
+import { toast } from "sonner";
+import Image from "next/image";
+import { useUser } from "@/context/UserContext";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
-const videoColumns: TableColumn<IRecordedVideo>[] = [
-  {
-    header: "Title",
-    accessor: "title",
-    sortable: true,
-    width: "25%",
-  },
-  {
-    header: "Course",
-    accessor: "courseId",
-    width: "15%",
-  },
-  {
-    header: "Duration",
-    accessor: "duration",
-    width: "12%",
-    cell: (data: IRecordedVideo) => {
-      const hours = Math.floor(data.duration / 3600);
-      const minutes = Math.floor((data.duration % 3600) / 60);
-      return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+function StatusBadge({ status }: { status: IRecordedVideo["status"] }) {
+  const map: Record<
+    IRecordedVideo["status"],
+    "default" | "secondary" | "outline" | "destructive"
+  > = {
+    ACTIVE: "default",
+    INACTIVE: "secondary",
+    ARCHIVED: "outline",
+    DELETED: "destructive",
+  };
+  return <Badge variant={map[status] ?? "outline"}>{status}</Badge>;
+}
+
+function DetailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[140px_1fr] gap-3 py-2">
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <span className="text-sm break-all">{children}</span>
+    </div>
+  );
+}
+
+interface VideoDetailSheetProps {
+  video: IRecordedVideo | null;
+  courses: Array<{ _id: string; title: string }>;
+  onClose: () => void;
+  onEdit: (video: IRecordedVideo) => void;
+}
+
+function VideoDetailSheet({
+  video,
+  courses,
+  onClose,
+  onEdit,
+}: VideoDetailSheetProps) {
+  if (!video) return null;
+
+  return (
+    <Sheet open={!!video} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle className="text-lg leading-snug">
+            {video.title}
+          </SheetTitle>
+          <SheetDescription>Recorded video details</SheetDescription>
+        </SheetHeader>
+
+        <ScrollArea className="max-h-[84vh]">
+          {/* Thumbnail preview */}
+        {video.thumbnailUrl && (
+          <div className="px-4 mb-4 rounded-md overflow-hidden border bg-muted aspect-video">
+            <Image
+              width={800}
+              height={800}
+              priority
+              quality={90}
+              src={video.thumbnailUrl}
+              alt={video.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        <Separator className="mb-4" />
+
+        <div className="divide-y divide-border px-4">
+          <DetailRow label="Status">
+            <StatusBadge status={video.status} />
+          </DetailRow>
+
+          <DetailRow label="Course">
+            {getCourseTitle(video.course, courses)}
+          </DetailRow>
+
+          <DetailRow label="Description">
+            {video.description || (
+              <span className="text-muted-foreground">—</span>
+            )}
+          </DetailRow>
+
+          <DetailRow label="Video URL">
+            {video.videoUrl ? (
+              <a
+                href={video.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-indigo-600 hover:underline"
+              >
+                Open video
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            )}
+          </DetailRow>
+
+          {video.thumbnailUrl && (
+            <DetailRow label="Thumbnail URL">
+              <a
+                href={video.thumbnailUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-indigo-600 hover:underline"
+              >
+                Open thumbnail
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </DetailRow>
+          )}
+
+          <DetailRow label="Created by">
+            {video.createdBy || (
+              <span className="text-muted-foreground">—</span>
+            )}
+          </DetailRow>
+
+          <DetailRow label="Created at">
+            {new Date(video.createdAt).toLocaleString()}
+          </DetailRow>
+
+          <DetailRow label="Updated at">
+            {new Date(video.updatedAt).toLocaleString()}
+          </DetailRow>
+
+          {/* <DetailRow label="ID">
+            <span className="font-mono text-xs text-muted-foreground">
+              {video._id}
+            </span>
+          </DetailRow> */}
+        </div>
+
+        <div className="mt-2 px-4">
+          <Button
+            className="hover:cursor-pointer w-full bg-indigo-800 hover:bg-indigo-700"
+            onClick={() => {
+              onClose();
+              onEdit(video);
+            }}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Edit this video
+          </Button>
+        </div>
+        <ScrollBar orientation="vertical" />
+        </ScrollArea>
+
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function buildVideoColumns(
+  courses: Array<{ _id: string; title: string }>,
+): TableColumn<IRecordedVideo>[] {
+  return [
+    {
+      header: "Title",
+      accessor: "title",
+      sortable: true,
+      width: "30%",
     },
-  },
-  {
-    header: "Views",
-    accessor: "viewCount",
-    width: "10%",
-  },
-  {
-    header: "Status",
-    accessor: "status",
-    width: "12%",
-    cell: (data: IRecordedVideo) => (
-      <Badge
-        variant={
-          data.status === "ACTIVE"
-            ? "default"
-            : data.status === "INACTIVE"
-              ? "secondary"
-              : "outline"
-        }
-      >
-        {data.status}
-      </Badge>
-    ),
-  },
-  {
-    header: "Uploaded",
-    accessor: "uploadedAt",
-    width: "12%",
-    sortable: true,
-    cell: (data: IRecordedVideo) =>
-      new Date(data.uploadedAt).toLocaleDateString(),
-  },
-];
+    {
+      header: "Course",
+      accessor: "course",
+      width: "20%",
+      cell: (row: IRecordedVideo) => getCourseTitle(row.course, courses),
+    },
+    {
+      header: "Status",
+      accessor: "status",
+      width: "12%",
+      cell: (row: IRecordedVideo) => <StatusBadge status={row.status} />,
+    },
+    {
+      header: "Created by",
+      accessor: "createdBy",
+      width: "14%",
+      cell: (row: IRecordedVideo) =>
+        row.createdBy ? (
+          row.createdBy
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        ),
+    },
+    {
+      header: "Created at",
+      accessor: "createdAt",
+      sortable: true,
+      width: "14%",
+      cell: (row: IRecordedVideo) =>
+        new Date(row.createdAt).toLocaleDateString(),
+    },
+  ];
+}
 
 export default function VideosManagement() {
-  const { toast } = useToast();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<SearchFilters>({});
+  const { user } = useUser();
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
   const [selectedVideo, setSelectedVideo] = useState<IRecordedVideo | null>(
     null,
   );
@@ -98,10 +270,7 @@ export default function VideosManagement() {
     status: filters.status,
   });
 
-  const { data: coursesData } = useGetAllCoursesQuery({
-    page: 1,
-    limit: 100,
-  });
+  const { data: coursesData } = useGetAllCoursesQuery({ page: 1, limit: 100 });
 
   const [createVideo, { isLoading: isCreating }] =
     useCreateRecordedVideoMutation();
@@ -110,51 +279,53 @@ export default function VideosManagement() {
   const [deleteVideo, { isLoading: isDeleting }] =
     useDeleteRecordedVideoMutation();
 
-  const videos: IRecordedVideo[] = videosData?.data || [];
-  const totalCount = videosData?.totalCount || 0;
-  const courses: ICourse[] = coursesData?.data || [];
+  const videos: IRecordedVideo[] = videosData?.data ?? [];
+  const totalCount: number =
+    videosData?.meta?.total ?? videosData?.totalCount ?? 0;
+  const courses: ICourse[] = coursesData?.data ?? [];
+
+  const coursesForForm = courses.map((c) => ({ _id: c._id, title: c.title }));
 
   const handleSearch = useCallback((newFilters: SearchFilters) => {
     setFilters(newFilters);
     setPage(1);
   }, []);
 
+  const openCreate = () => {
+    setSelectedVideo(null);
+    setIsFormOpen(true);
+  };
+
+  const openEdit = (video: IRecordedVideo) => {
+    setSelectedVideo(video);
+    setIsFormOpen(true);
+  };
+
+  const openDetail = (video: IRecordedVideo) => {
+    setSelectedVideo(video);
+    setIsDetailOpen(true);
+  };
+
   const handleCreateVideo = async (formData: RecordedVideoFormData) => {
     try {
-      await createVideo(formData).unwrap();
-      toast({
-        title: "Success",
-        description: "Video uploaded successfully",
-      });
+      const createdBy = user?.name || user?.email|| "Unknown";
+      await createVideo({ ...formData, createdBy }).unwrap();
+      toast.success("Video uploaded successfully");
       setIsFormOpen(false);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.data?.message || "Failed to upload video",
-        variant: "destructive",
-      });
+      toast.error(error?.data?.message ?? "Failed to upload video");
     }
   };
 
   const handleUpdateVideo = async (formData: RecordedVideoFormData) => {
     if (!selectedVideo) return;
     try {
-      await updateVideo({
-        id: selectedVideo._id,
-        data: formData,
-      }).unwrap();
-      toast({
-        title: "Success",
-        description: "Video updated successfully",
-      });
+      await updateVideo({ id: selectedVideo._id, data: formData }).unwrap();
+      toast.success("Video updated successfully");
       setIsFormOpen(false);
       setSelectedVideo(null);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.data?.message || "Failed to update video",
-        variant: "destructive",
-      });
+      toast.error(error?.data?.message ?? "Failed to update video");
     }
   };
 
@@ -162,23 +333,16 @@ export default function VideosManagement() {
     if (!selectedVideo) return;
     try {
       await deleteVideo(selectedVideo._id).unwrap();
-      toast({
-        title: "Success",
-        description: "Video deleted successfully",
-      });
+      toast.success("Video deleted successfully");
       setIsDeleteOpen(false);
       setSelectedVideo(null);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.data?.message || "Failed to delete video",
-        variant: "destructive",
-      });
+      toast.error(error?.data?.message ?? "Failed to delete video");
     }
   };
 
-  const totalViews = videos.reduce((sum, v) => sum + v.viewCount, 0);
-  const activeVideos = videos.filter((v) => v.status === "ACTIVE").length;
+  const activeCount = videos.filter((v) => v.status === "ACTIVE").length;
+  const archivedCount = videos.filter((v) => v.status === "ARCHIVED").length;
 
   const stats = [
     {
@@ -190,17 +354,17 @@ export default function VideosManagement() {
     },
     {
       title: "Active Videos",
-      value: activeVideos,
+      value: activeCount,
       icon: <Play className="h-6 w-6" />,
       bgColor: "bg-green-50 dark:bg-green-950",
       textColor: "text-green-600 dark:text-green-400",
     },
     {
-      title: "Total Views",
-      value: totalViews.toLocaleString(),
-      icon: <Eye className="h-6 w-6" />,
-      bgColor: "bg-blue-50 dark:bg-blue-950",
-      textColor: "text-blue-600 dark:text-blue-400",
+      title: "Archived",
+      value: archivedCount,
+      icon: <Archive className="h-6 w-6" />,
+      bgColor: "bg-amber-50 dark:bg-amber-950",
+      textColor: "text-amber-600 dark:text-amber-400",
     },
   ];
 
@@ -212,10 +376,7 @@ export default function VideosManagement() {
         actionButton={{
           label: "Upload Video",
           icon: <Plus className="h-4 w-4" />,
-          onClick: () => {
-            setSelectedVideo(null);
-            setIsFormOpen(true);
-          },
+          onClick: openCreate,
         }}
       />
 
@@ -228,7 +389,7 @@ export default function VideosManagement() {
 
       {/* Table */}
       <AdminDataTable<IRecordedVideo>
-        columns={videoColumns}
+        columns={buildVideoColumns(coursesForForm)}
         data={videos}
         isLoading={isLoading}
         totalCount={totalCount}
@@ -241,19 +402,14 @@ export default function VideosManagement() {
           <ActionMenu
             items={[
               {
-                label: "View",
+                label: "View details",
                 icon: <Eye className="h-4 w-4" />,
-                onClick: () => {
-                  // Handle view - open in modal or new tab
-                },
+                onClick: () => openDetail(video),
               },
               {
                 label: "Edit",
                 icon: <Edit className="h-4 w-4" />,
-                onClick: () => {
-                  setSelectedVideo(video);
-                  setIsFormOpen(true);
-                },
+                onClick: () => openEdit(video),
               },
               ...(video.isDeleted
                 ? [
@@ -261,7 +417,7 @@ export default function VideosManagement() {
                       label: "Restore",
                       icon: <RotateCcw className="h-4 w-4" />,
                       onClick: () => {
-                        // Handle restore
+                        // wire up restore mutation here when available
                       },
                     },
                   ]
@@ -281,7 +437,16 @@ export default function VideosManagement() {
         )}
       />
 
-      {/* Form Dialog */}
+      <VideoDetailSheet
+        video={isDetailOpen ? selectedVideo : null}
+        courses={coursesForForm}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedVideo(null);
+        }}
+        onEdit={openEdit}
+      />
+
       <FormDialog
         isOpen={isFormOpen}
         onClose={() => {
@@ -298,14 +463,15 @@ export default function VideosManagement() {
         submitLabel={selectedVideo ? "Update" : "Upload"}
       >
         <VideoForm
-          video={selectedVideo || undefined}
-          courses={courses.map((c) => ({ _id: c._id, title: c.title }))}
+          key={selectedVideo?._id ?? "new"}
+          video={selectedVideo ?? undefined}
+          courses={coursesForForm}
           isLoading={isCreating || isUpdating}
           onSubmit={selectedVideo ? handleUpdateVideo : handleCreateVideo}
         />
       </FormDialog>
 
-      {/* Delete Confirmation */}
+      {/* Delete confirmation */}
       <ConfirmDialog
         isOpen={isDeleteOpen}
         onClose={() => {

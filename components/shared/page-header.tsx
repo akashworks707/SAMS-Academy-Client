@@ -27,7 +27,7 @@ export function PageHeader({
         )}
       </div>
       {actionButton && (
-        <Button onClick={actionButton.onClick} className="w-full sm:w-auto">
+        <Button onClick={actionButton.onClick} className="w-full hover:cursor-pointer bg-indigo-800 sm:w-auto">
           {actionButton.icon && (
             <span className="mr-2">{actionButton.icon}</span>
           )}

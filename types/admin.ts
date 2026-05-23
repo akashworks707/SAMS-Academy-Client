@@ -8,7 +8,7 @@ export interface ICourse {
   instructorId: string;
   studentCount: number;
   enrollmentCount: number;
-  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  status: "running" | "upcoming" | "completed";
   createdAt: string;
   updatedAt: string;
 }
@@ -19,10 +19,9 @@ export interface CourseFormData {
   code: string;
   credits: number;
   instructorId: string;
-  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  status: "running" | "upcoming" | "completed";
 }
 
-// Enrollment Types
 export interface IEnrollment {
   _id: string;
   studentId: string;
@@ -59,39 +58,58 @@ export interface RecordedVideoFormData {
   status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
 }
 
-// Zoom Meeting Types
+export type ZoomMeetingStatus =
+  | "SCHEDULED"
+  | "LIVE"
+  | "COMPLETED"
+  | "CANCELLED";
+
 export interface IZoomMeeting {
   _id: string;
-  meetingId: number;
+  courseId: string;
+
+  subjectId: string;
+
+  classTitle: string;
+
   topic: string;
-  hostEmail?: string;
-  hostId?: string;
-  startUrl?: string;
+
+  meetingId: string;
+
+  status: ZoomMeetingStatus;
+
+  startTime: Date | string;
+
+  duration: number;
+
   timezone?: string;
   password?: string;
-  classTitle: string;
-  description?: string;
-  startTime: string;
-  duration: number;
+
   joinUrl: string;
-  courseId: string;
-  instructorId: string;
-  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
-  recordingUrl?: string;
-  participantCount: number;
-  createdAt: string;
-  updatedAt: string;
+  startUrl: string;
+
+  hostId?: string;
+  hostEmail?: string;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ZoomMeetingFormData {
   topic: string;
-  title: string;
-  description?: string;
+  courseId: string;
+  subjectId: string;
   startTime: string;
   duration: number;
-  courseId: string;
-  instructorId: string;
-  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  timezone?: string;
+}
+
+export interface ZoomMeetingUpdateData {
+  status?: ZoomMeetingStatus;
+  classTitle?: string;
+  courseId?: string;
+  subjectId?: string;
+  duration?: number;
 }
 
 // Table Types
@@ -123,6 +141,7 @@ export interface TableColumn<T> {
 export interface ActionMenuItem {
   label: string;
   icon: React.ReactNode;
+  disabled?: boolean;
   onClick: () => void;
   variant?: "default" | "destructive" | "secondary";
 }

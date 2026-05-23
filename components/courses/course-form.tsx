@@ -23,7 +23,7 @@ const courseFormSchema = z.object({
   code: z.string().min(2, "Course code must be at least 2 characters"),
   credits: z.coerce.number().min(1).max(10),
   instructorId: z.string().min(1, "Please select an instructor"),
-  status: z.enum(["ACTIVE", "INACTIVE", "ARCHIVED"]),
+  status: z.enum(["upcoming", "running", "completed"]),
 });
 
 function FieldError({ message }: { message?: string }) {
@@ -58,7 +58,7 @@ export function CourseForm({
       code: course?.code ?? "",
       credits: course?.credits ?? 3,
       instructorId: course?.instructorId ?? "",
-      status: course?.status ?? "ACTIVE",
+      status: course?.status ?? "running",
     },
   });
 
@@ -148,9 +148,9 @@ export function CourseForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
-                <SelectItem value="ARCHIVED">Archived</SelectItem>
+                <SelectItem value="running">Running</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>
           )}

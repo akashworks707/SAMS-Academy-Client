@@ -10,6 +10,7 @@ export const baseApi = createApi({
   "ENROLLMENTS",
   "ENROLLMENT",
   "COURSES",
+  "SUBJECTS",
   "COURSE"],
   endpoints: () => ({}),
 });

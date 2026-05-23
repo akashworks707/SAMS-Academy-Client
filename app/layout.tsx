@@ -31,6 +31,7 @@ export default async function LocaleLayout({
 
   return (
     <html>
+      
       <body className={`${geist.className} ${geistMono.className} antialiased`}>
         <Providers>
           <UserProvider>

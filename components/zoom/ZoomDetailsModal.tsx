@@ -16,7 +16,6 @@ import {
   Calendar,
   Clock,
   Video,
-  ExternalLink,
   Copy,
   Check,
 } from "lucide-react";
@@ -45,7 +44,7 @@ export function ZoomDetailsModal({
 
   const statusColors = {
     SCHEDULED: "default",
-    IN_PROGRESS: "secondary",
+    LIVE: "secondary",
     COMPLETED: "outline",
     CANCELLED: "destructive",
   } as const;
@@ -283,7 +282,7 @@ export function ZoomDetailsModal({
           <Button variant="outline" onClick={onClose} className="flex-1">
             Close
           </Button>
-          <Button
+          {/* <Button
             onClick={() => {
               window.open(meeting.joinUrl, "_blank");
             }}
@@ -291,7 +290,7 @@ export function ZoomDetailsModal({
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Join Meeting
-          </Button>
+          </Button> */}
         </div>
       </DialogContent>
     </Dialog>

@@ -22,12 +22,8 @@ export function ActionMenu({ items, triggerClassName }: ActionMenuProps) {
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={triggerClassName}
-        >
+      <DropdownMenuTrigger>
+        <Button variant="ghost" size="sm" className={triggerClassName}>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -35,6 +31,7 @@ export function ActionMenu({ items, triggerClassName }: ActionMenuProps) {
         {items.map((item, index) => (
           <React.Fragment key={index}>
             <DropdownMenuItem
+              disabled={item.disabled}
               onClick={() => {
                 item.onClick();
                 setOpen(false);

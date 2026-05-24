@@ -27,11 +27,6 @@ export interface IRegisterResponse {
   updatedAt?: string;
 }
 
-export interface IIngredient {
-  name: string;
-  price: number;
-}
-
 export type GetQueryParams = {
   searchTerm?: string;
   sort?: string;

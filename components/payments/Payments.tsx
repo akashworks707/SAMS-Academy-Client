@@ -158,11 +158,11 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="ছাত্র পেমেন্ট"
-        description="সকল শিক্ষার্থীর পেমেন্ট তথ্য পরিচালনা করুন"
+        title="Student Payment"
+        description="Manage All Students Payments"
         breadcrumbs={[
-          { label: "ড্যাশবোর্ড", href: "/bn/dashboard" },
-          { label: "ছাত্র পেমেন্ট" },
+          { label: "Dashboard", href: "/bn/dashboard" },
+          { label: "Student Payment" },
         ]}
         action={
           <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">

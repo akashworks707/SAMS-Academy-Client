@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
-import { Plus, Edit2, Trash2, Search } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState } from "react";
+import { Plus, Edit2, Trash2, Search, BookOpen } from "lucide-react";
+import { toast } from "sonner";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,90 +16,78 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SubjectForm } from "@/components/forms/subject-form";
-import { SubjectService } from "@/lib/services/data-service";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
-import type { Subject } from "@/types";
+import {
+  useGetSubjectsQuery,
+  useSoftDeleteSubjectMutation,
+} from "@/redux/features/subjects/subject.api";
+import CreateSubjectModal from "./CreateSubjectModal";
+import UpdateSubjectModal from "./UpdateSubjectModal";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface SubjectItem {
+  _id: string;
+  title: string;
+  code?: string;
+  description?: string;
+  isActive: boolean;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function SubjectsManagement() {
-  const t = useTranslations();
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [filteredSubjects, setFilteredSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const [deletingSubject, setDeletingSubject] = useState<Subject | null>(null);
+  const [deletingSubject, setDeletingSubject] = useState<SubjectItem | null>(null);
+  const [editingSubject, setEditingSubject] = useState<SubjectItem | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
-  // Load subjects
-  useEffect(() => {
-    const loadSubjects = async () => {
-      setLoading(true);
-      try {
-        const data = await SubjectService.getAll();
-        setSubjects(data);
-        setFilteredSubjects(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadSubjects();
-  }, []);
+  // ── RTK Query ──
+  const {
+    data: subjectsData,
+    isLoading: isSubjectsLoading,
+    refetch,
+  } = useGetSubjectsQuery({
+    searchTerm: searchTerm || undefined,
+    limit: 50,
+  });
 
-  // Filter by search term
-  useEffect(() => {
-    const filtered = subjects.filter(
-      (subject) =>
-        subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        subject.code.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-    setTimeout(() => {
-      setFilteredSubjects(filtered);
-    }, 100);
-  }, [searchTerm, subjects]);
+  const [softDeleteSubject, { isLoading: isDeleting }] = useSoftDeleteSubjectMutation();
 
-  // Handle add/edit
-  const handleSubmit = async (data: Omit<Subject, "id">) => {
-    try {
-      if (editingSubject) {
-        await SubjectService.update(editingSubject.id, data);
-      } else {
-        await SubjectService.create(data);
-      }
-      // Reload subjects
-      const updated = await SubjectService.getAll();
-      setSubjects(updated);
-      setIsDialogOpen(false);
-      setEditingSubject(null);
-    } catch (error) {
-      console.error("Error saving subject:", error);
-    }
+  const subjects = (subjectsData as { data?: SubjectItem[] })?.data ?? [];
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const openEditDialog = (subject: SubjectItem) => {
+    setEditingSubject(subject);
+    setIsEditOpen(true);
   };
 
-  // Handle delete
-  const handleDelete = async () => {
+  const handleDeleteSubject = async () => {
     if (!deletingSubject) return;
     try {
-      await SubjectService.delete(deletingSubject.id);
-      const updated = await SubjectService.getAll();
-      setSubjects(updated);
+      await softDeleteSubject(deletingSubject._id).unwrap();
+      toast.success("বিষয় সরানো হয়েছে", {
+        description: `"${deletingSubject.title}" ট্র্যাশে সরানো হয়েছে।`,
+      });
       setIsDeleteOpen(false);
       setDeletingSubject(null);
-    } catch (error) {
-      console.error("Error deleting subject:", error);
+      refetch();
+    } catch (error: any) {
+      toast.error("মুছে ফেলা ব্যর্থ হয়েছে", {
+        description: error?.data?.message ?? "বিষয়টি মুছতে সমস্যা হয়েছে।",
+      });
     }
   };
 
-  const openEditDialog = (subject: Subject) => {
-    setEditingSubject(subject);
-    setIsDialogOpen(true);
-  };
-
-  const openDeleteDialog = (subject: Subject) => {
+  const openDeleteDialog = (subject: SubjectItem) => {
     setDeletingSubject(subject);
     setIsDeleteOpen(true);
   };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
@@ -113,95 +95,104 @@ export default function SubjectsManagement() {
         title="বিষয় পরিচালনা"
         description="সকল বিষয় এবং পাঠ্যক্রম পরিচালনা করুন"
         breadcrumbs={[
-          { label: "ড্যাশবোর্ড", href: "/bn/dashboard" },
+          { label: "ড্যাশবোর্ড", href: "/dashboard" },
           { label: "বিষয়" },
         ]}
-        action={
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-            onClick={() => {
-              setEditingSubject(null);
-              setIsDialogOpen(true);
-            }}
-          >
-            <Plus className="w-4 h-4" />
-            নতুন বিষয়
-          </Button>
-        }
+        action={<CreateSubjectModal onSuccess={refetch} />}
       />
 
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+      {/* অনুসন্ধান বার */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
-          placeholder="বিষয় নাম বা কোড অনুসন্ধান করুন..."
-          className="pl-10"
+          placeholder="নাম বা কোড দিয়ে অনুসন্ধান করুন..."
+          className="pl-9 h-10"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {/* Subjects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full text-center py-12">লোড হচ্ছে...</div>
-        ) : filteredSubjects.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-slate-500">
-            কোন বিষয় পাওয়া যায়নি
-          </div>
-        ) : (
-          filteredSubjects.map((subject) => (
+      {/* বিষয় গ্রিড */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {isSubjectsLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
             <div
-              key={subject.id}
-              className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 hover:shadow-lg dark:hover:shadow-slate-800/50 transition-all"
+              key={i}
+              className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center font-bold text-blue-600 dark:text-blue-400">
-                  {subject.name.charAt(0)}
+                <div className="w-12 h-12 rounded-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="w-16 h-5 rounded-full bg-slate-200 dark:bg-slate-700" />
+              </div>
+              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-4" />
+              <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded mt-4" />
+            </div>
+          ))
+        ) : subjects.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
+            <BookOpen className="w-12 h-12 mb-3 opacity-30" />
+            <p className="font-medium">কোনো বিষয় পাওয়া যায়নি</p>
+            <p className="text-sm mt-1">
+              {searchTerm
+                ? "অন্য কোনো শব্দ দিয়ে অনুসন্ধান করুন"
+                : "শুরু করতে প্রথম বিষয়টি তৈরি করুন"}
+            </p>
+          </div>
+        ) : (
+          subjects.map((subject) => (
+            <div
+              key={subject._id}
+              className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-11 h-11 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center font-bold text-emerald-600 dark:text-emerald-400 text-lg">
+                  {subject.title.charAt(0).toUpperCase()}
                 </div>
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    subject.status === "active"
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
-                  }`}
+                <Badge
+                  className={
+                    subject.isActive
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 hover:bg-emerald-100"
+                      : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                  }
                 >
-                  {subject.status === "active" ? "সক্রিয়" : "নিষ্ক্রিয়"}
-                </span>
+                  {subject.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                </Badge>
               </div>
-              <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                {subject.name}
+
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-0.5 truncate">
+                {subject.title}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                {subject.code}
-              </p>
-              <div className="space-y-2 text-sm mb-4">
-                <p className="text-slate-600 dark:text-slate-400">
-                  <span className="font-medium">ক্রেডিট:</span>{" "}
-                  {subject.creditHours}
+
+              {subject.code && (
+                <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mb-2">
+                  {subject.code}
                 </p>
-                <p className="text-slate-600 dark:text-slate-400">
-                  <span className="font-medium">ক্লাস:</span>{" "}
-                  {subject.classes.join(", ")}
+              )}
+
+              {subject.description && (
+                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
+                  {subject.description}
                 </p>
-              </div>
-              <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+              )}
+
+              <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs h-8"
                   onClick={() => openEditDialog(subject)}
                 >
-                  <Edit2 className="w-4 h-4 mr-2" />
+                  <Edit2 className="w-3.5 h-3.5 mr-1.5" />
                   সম্পাদনা
                 </Button>
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs h-8 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
                   onClick={() => openDeleteDialog(subject)}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                   মুছুন
                 </Button>
               </div>
@@ -210,43 +201,40 @@ export default function SubjectsManagement() {
         )}
       </div>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingSubject ? "বিষয় সম্পাদনা করুন" : "নতুন বিষয় যোগ করুন"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingSubject
-                ? "বিষয়ের তথ্য আপডেট করুন"
-                : "নতুন বিষয় সম্পর্কে তথ্য প্রবেশ করুন"}
-            </DialogDescription>
-          </DialogHeader>
-          <SubjectForm
-            initialData={editingSubject || undefined}
-            onSubmit={handleSubmit}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* আপডেট মডাল */}
+      {editingSubject && (
+        <UpdateSubjectModal
+          subject={editingSubject}
+          open={isEditOpen}
+          onOpenChange={(val) => {
+            setIsEditOpen(val);
+            if (!val) setEditingSubject(null);
+          }}
+          onSuccess={refetch}
+        />
+      )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>বিষয় মুছুন</AlertDialogTitle>
             <AlertDialogDescription>
-              আপনি কি {deletingSubject?.name} মুছতে নিশ্চিত? এই ক্রিয়া বাতিল
-              করা যাবে না।
+              আপনি কি{" "}
+              <span className="font-semibold text-slate-900 dark:text-white">
+                {deletingSubject?.title}
+              </span>{" "}
+              মুছতে নিশ্চিত? এটি ট্র্যাশে সরানো হবে।
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex gap-2">
-            <AlertDialogCancel>বাতিল করুন</AlertDialogCancel>
+          <div className="flex gap-2 justify-end mt-2">
+            <AlertDialogCancel disabled={isDeleting}>বাতিল করুন</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={handleDeleteSubject}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              মুছুন
+              {isDeleting ? "মুছে ফেলা হচ্ছে..." : "মুছুন"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

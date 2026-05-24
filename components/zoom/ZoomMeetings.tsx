@@ -23,7 +23,7 @@ import {
   useUpdateMeetingMutation,
   useGetMeetingsQuery,
 } from "@/redux/features/zoom/zoom.api";
-import { useGetAllCoursesQuery } from "@/redux/features/course/course.api";
+import { useGetCoursesQuery } from "@/redux/features/course/course.api";
 import { useGetSubjectsQuery } from "@/redux/features/subjects/subject.api";
 import { toast } from "sonner";
 import { useUser } from "@/context/UserContext";
@@ -95,7 +95,7 @@ export default function ZoomMeetings() {
     searchTerm: filters.search,
   });
 
-  const { data: coursesData } = useGetAllCoursesQuery({ page: 1, limit: 100 });
+  const { data: coursesData } = useGetCoursesQuery({ page: 1, limit: 100 });
   const { data: subjectsData } = useGetSubjectsQuery({ page: 1, limit: 100 });
 
   const [createMeeting, { isLoading: isCreating }] = useCreateMeetingMutation();

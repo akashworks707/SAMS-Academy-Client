@@ -189,9 +189,9 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
             <DropdownMenuItem
               onClick={() => {
                 if (user?.role === "ADMIN") {
-                  router.push("/admin");
+                  router.push("/dashboard");
                 } else if (user?.role === "TEACHER") {
-                  router.push("/admin/teachers");
+                  router.push("/dashboard/teachers");
                 } else {
                   router.push("/");
                 }

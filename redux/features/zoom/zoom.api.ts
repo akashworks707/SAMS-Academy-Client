@@ -70,6 +70,34 @@ export const zoomApi = baseApi.injectEndpoints({
         params,
       }),
     }),
+    // ── Get all videos for a course filtered by subject ─────────────────────────
+    getLiveClassesByCourseAndSubject: builder.query<
+      unknown,
+      { courseId: string; subjectId: string }
+    >({
+      query: ({ courseId, subjectId }) => ({
+        url: "/zoom/meetings",
+        method: "GET",
+        params: { course: courseId, subject: subjectId, limit: 200 },
+      }),
+      providesTags: ["ZOOM_MEETINGS"],
+    }),
+
+    softDeleteMeeting: builder.mutation<unknown, string>({
+      query: (id) => ({
+        url: `/zoom/soft-delete/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["ZOOM_MEETINGS"],
+    }),
+
+    deleteMeeting: builder.mutation<unknown, string>({
+      query: (id) => ({
+        url: `/zoom/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["ZOOM_MEETINGS"],
+    }),
   }),
 });
 
@@ -79,4 +107,7 @@ export const {
   useGetMeetingsQuery,
   useGetSignatureQuery,
   useLazyGetSignatureQuery,
+  useGetLiveClassesByCourseAndSubjectQuery,
+  useSoftDeleteMeetingMutation,
+  useDeleteMeetingMutation,
 } = zoomApi;

@@ -81,70 +81,70 @@ const NavItems = () => {
   const items: NavItem[] = [
     {
       key: "dashboard",
-      href: "/admin/dashboard",
+      href: "/dashboard",
       icon: <LayoutDashboard className="w-5 h-5" />,
       label: t("dashboard"),
     },
     {
       key: "classes",
-      href: "/admin/classes",
+      href: "/dashboard/classes",
       icon: <BookOpen className="w-5 h-5" />,
       label: t("classes"),
     },
     {
       key: "courses",
-      href: "/admin/courses",
+      href: "/dashboard/courses",
       icon: <BookMarked className="w-5 h-5" />,
       label: t("courses"),
     },
     {
       key: "subjects",
-      href: "/admin/subjects",
+      href: "/dashboard/subjects",
       icon: <BookMarked className="w-5 h-5" />,
       label: t("subjects"),
     },
     {
       key: "teachers",
-      href: "/admin/teachers",
+      href: "/dashboard/teachers",
       icon: <Users className="w-5 h-5" />,
       label: t("teachers"),
     },
     {
       key: "students",
-      href: "/admin/students",
+      href: "/dashboard/students",
       icon: <UserCheck className="w-5 h-5" />,
       label: t("students"),
     },
     {
       key: "enrollments",
-      href: "/admin/enrollments",
+      href: "/dashboard/enrollments",
       icon: <UserPlus className="w-5 h-5" />,
       label: t("enrollments"),
     },
     {
       key: "payments",
-      href: "/admin/payments",
+      href: "/dashboard/payments",
       icon: <CreditCard className="w-5 h-5" />,
       label: t("student_payments"),
     },
     {
       key: "commission",
-      href: "/admin/commission",
+      href: "/dashboard/commission",
       icon: <TrendingUp className="w-5 h-5" />,
       label: t("marketing_commission"),
     },
-    {
-      key: "videos",
-      href: "/admin/videos",
-      icon: <PlayCircle className="w-5 h-5" />,
-      label: t("recorded_videos"),
-    },
-    {
-      key: "zoom",
-      href: "/admin/zoom",
-      icon: <Video className="w-5 h-5" />,
-      label: t("zoom_meetings"),
-    },
+    // {
+    //   key: "videos",
+    //   href: "/dashboard/videos",
+    //   icon: <PlayCircle className="w-5 h-5" />,
+    //   label: t("recorded_videos"),
+    // },
+    // {
+    //   key: "zoom",
+    //   href: "/dashboard/zoom",
+    //   icon: <Video className="w-5 h-5" />,
+    //   label: t("zoom_meetings"),
+    // },
   ];
 
   return (

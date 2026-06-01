@@ -13,15 +13,6 @@ export interface ICourse {
   updatedAt: string;
 }
 
-export interface CourseFormData {
-  title: string;
-  description: string;
-  code: string;
-  credits: number;
-  instructorId: string;
-  status: "running" | "upcoming" | "completed";
-}
-
 export interface IEnrollment {
   _id: string;
   studentId: string;

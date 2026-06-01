@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import {
   Search, BookOpen, Edit2, Trash2, Star, Users,
   Clock, CalendarDays, BadgeCheck, PlayCircle,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,6 +23,9 @@ import { PageHeader } from "@/components/layout/page-header";
 import { useGetCoursesQuery, useSoftDeleteCourseMutation } from "@/redux/features/course/course.api";
 import { UpdateCourseModal } from "./UpdateCourseModal";
 import { CreateCourseModal } from "./CreateCourseModal";
+import Link from "next/link";
+import { useUser } from "@/context/UserContext";
+import { Role } from "@/types";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,9 +54,9 @@ interface CourseItem {
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const statusConfig = {
-  upcoming: { label: "Upcoming", dot: "bg-blue-500", badge: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800" },
-  running: { label: "Running", dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800" },
-  completed: { label: "Completed", dot: "bg-slate-400", badge: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700" },
+  upcoming: { label: "Upcoming", dot: "bg-blue-500", badge: "text-[11px] px-2 py-0.5 border font-medium bg-white/90 dark:bg-slate-900/90 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-amber-800 backdrop-blur-sm" },
+  running: { label: "Running", dot: "bg-emerald-500", badge: "text-[11px] px-2 py-0.5 border font-medium bg-white/90 dark:bg-slate-900/90 text-green-700 border-blue-200 dark:text-green-400 dark:border-amber-800 backdrop-blur-sm" },
+  completed: { label: "Completed", dot: "bg-slate-400", badge: "text-[11px] px-2 py-0.5 border font-medium bg-white/90 dark:bg-slate-900/90 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-amber-800 backdrop-blur-sm" },
 };
 
 // ─── Skeleton Card ────────────────────────────────────────────────────────────
@@ -90,6 +94,10 @@ export default function CourseManagement() {
   const [softDeleteCourse, { isLoading: isDeleting }] = useSoftDeleteCourseMutation();
 
   const courses = (coursesData as { data?: CourseItem[] })?.data ?? [];
+  const { user } = useUser();
+
+  const userRole = user?.role;
+
 
   const openEditDialog = (course: CourseItem) => { setEditingCourse(course); setIsEditOpen(true); };
   const openDeleteDialog = (course: CourseItem) => { setDeletingCourse(course); setIsDeleteOpen(true); };
@@ -195,7 +203,7 @@ export default function CourseManagement() {
                       {cfg.label}
                     </Badge>
                     {course.isFeatured && (
-                      <Badge variant="outline" className="text-[11px] px-2 py-0.5 border font-medium bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 backdrop-blur-sm">
+                      <Badge variant="outline" className="text-[11px] px-2 py-0.5 border font-medium bg-white/90 dark:bg-slate-900/90 text-amber-700 border-amber-200 dark:text-amber-400 dark:border-amber-800 backdrop-blur-sm">
                         <Star className="h-2.5 w-2.5 mr-1 fill-amber-500 text-amber-500" /> Featured
                       </Badge>
                     )}
@@ -261,25 +269,40 @@ export default function CourseManagement() {
                   )}
 
                   {/* Action buttons */}
-                  <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <Button
+                  <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 ">
+
+                    {userRole === Role.ADMIN && <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-xs h-8"
+                      className="flex-1 text-xs h-8 cursor-pointer"
                       onClick={() => openEditDialog(course)}
                     >
                       <Edit2 className="w-3.5 h-3.5 mr-1.5" />
                       Update
                     </Button>
-                    <Button
+
+                    }
+
+                    <Link href={`/dashboard/courses/view-course/${course.slug}`} className="block w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs h-8 w-full cursor-pointer"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5 mr-1.5" />
+                        Continue
+                      </Button>
+                    </Link>
+                    {userRole === Role.ADMIN && <Button
                       variant="outline"
                       size="sm"
-                      className="px-2.5 h-8 border-red-200 text-red-500 hover:bg-red-50 hover:text-red-700 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
+                      className="px-2.5 h-8 border-red-200 text-red-500 cursor-pointer hover:bg-red-50 hover:text-red-700 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
                       onClick={() => openDeleteDialog(course)}
                       title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
+                    }
                   </div>
                 </div>
               </div>

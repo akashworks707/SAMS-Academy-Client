@@ -64,7 +64,7 @@ export const authApi = baseApi.injectEndpoints({
       IAdminChangePasswordPayload
     >({
       query: (payload) => ({
-        url: "/auth/admin/change-password",
+        url: "/auth/dashboard/change-password",
         method: "POST",
         data: payload,
       }),

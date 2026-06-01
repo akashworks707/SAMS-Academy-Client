@@ -34,7 +34,7 @@ export function GoogleAuthButton() {
       login(result.data.user);
 
       if (result.data.user.role === "ADMIN") {
-        router.push("/admin");
+        router.push("/dashboard");
       } else if (result.data.user.role === "TEACHER") {
         router.push("/");
       } else {

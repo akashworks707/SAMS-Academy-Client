@@ -21,6 +21,13 @@ export interface Teacher {
   avatar?: string;
 }
 
+export interface IResponse<T> {
+  statusCode: number
+  success: boolean
+  message: string
+  data: T
+}
+
 export interface Class {
   id: string;
   name: string;

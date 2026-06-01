@@ -33,7 +33,7 @@ export function NavbarDropdown({ user, onLogout }: NavbarDropdownProps) {
     user.role === "STUDENT"
       ? "/"
       : user.role === "TEACHER"
-        ? "/admin"
+        ? "/dashboard"
         : "/";
 
   const handleLogout = async () => {

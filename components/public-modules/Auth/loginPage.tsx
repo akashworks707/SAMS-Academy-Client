@@ -80,7 +80,7 @@ export default function Login() {
       login(res.user.user);
       const role = res.user.user.role;
       if (role === "ADMIN" || role === "TEACHER" || role === "STUDENT") {
-        router.push("/admin");
+        router.push("/dashboard");
       } else {
         router.push("/");
       }

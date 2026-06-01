@@ -1,8 +1,49 @@
 import { baseApi } from "../baseApi";
+import { IResponse } from "@/types";
+import { RecordedVideoStatus } from "@/types/admin";
+import { ICourseRecordedVideo } from "@/types/recorded-video.api";
+import { IPaginationMeta } from "@/types/user";
+
+// ─── Request / Response shapes ─────────────────────────────────────────────────
+
+export interface CreateRecordedVideoPayload {
+  course: string;
+  subject: string;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  status?: RecordedVideoStatus;
+}
+
+export interface UpdateRecordedVideoPayload
+  extends Partial<CreateRecordedVideoPayload> {}
+
+export interface GetRecordedVideosParams {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  sort?: string;
+  course?: string;
+  subject?: string;
+  status?: RecordedVideoStatus;
+}
+
+export interface GetAllRecordedVideosResponse {
+  success: boolean;
+  data: ICourseRecordedVideo[];
+  meta: IPaginationMeta;
+}
+
+// ─── API slice ─────────────────────────────────────────────────────────────────
 
 export const recordedVideoApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createRecordedVideo: builder.mutation({
+
+    // ── Create ──────────────────────────────────────────────────────────────────
+    createRecordedVideo: builder.mutation<
+      IResponse<ICourseRecordedVideo>,
+      FormData
+    >({
       query: (formData) => ({
         url: "/recorded-video/create-recorded-video",
         method: "POST",
@@ -11,7 +52,11 @@ export const recordedVideoApi = baseApi.injectEndpoints({
       invalidatesTags: ["RECORDED_VIDEOS"],
     }),
 
-    getAllRecordedVideos: builder.query({
+    // ── Get all (active) ────────────────────────────────────────────────────────
+    getRecordedVideos: builder.query<
+      GetAllRecordedVideosResponse,
+      GetRecordedVideosParams
+    >({
       query: (params) => ({
         url: "/recorded-video/all-recorded-videos",
         method: "GET",
@@ -20,7 +65,37 @@ export const recordedVideoApi = baseApi.injectEndpoints({
       providesTags: ["RECORDED_VIDEOS"],
     }),
 
-    getAllTrashRecordedVideos: builder.query({
+    // ── Get all videos for a specific course ────────────────────────────────────
+    getRecordedVideosByCourse: builder.query<
+      GetAllRecordedVideosResponse,
+      string // courseId
+    >({
+      query: (courseId) => ({
+        url: "/recorded-video/all-recorded-videos",
+        method: "GET",
+        params: { course: courseId, limit: 200 },
+      }),
+      providesTags: ["RECORDED_VIDEOS"],
+    }),
+
+    // ── Get all videos for a course filtered by subject ─────────────────────────
+    getRecordedVideosByCourseAndSubject: builder.query<
+      GetAllRecordedVideosResponse,
+      { courseId: string; subjectId: string }
+    >({
+      query: ({ courseId, subjectId }) => ({
+        url: "/recorded-video/all-recorded-videos",
+        method: "GET",
+        params: { course: courseId, subject: subjectId, limit: 200 },
+      }),
+      providesTags: ["RECORDED_VIDEOS"],
+    }),
+
+    // ── Get trash ───────────────────────────────────────────────────────────────
+    getTrashRecordedVideos: builder.query<
+      GetAllRecordedVideosResponse,
+      GetRecordedVideosParams
+    >({
       query: (params) => ({
         url: "/recorded-video/all-trash-recorded-videos",
         method: "GET",
@@ -29,38 +104,49 @@ export const recordedVideoApi = baseApi.injectEndpoints({
       providesTags: ["RECORDED_VIDEOS"],
     }),
 
-    getSingleRecordedVideo: builder.query({
-      query: (id: string) => ({
+    // ── Get single ──────────────────────────────────────────────────────────────
+    getSingleRecordedVideo: builder.query<
+      IResponse<ICourseRecordedVideo>,
+      string // id
+    >({
+      query: (id) => ({
         url: `/recorded-video/${id}`,
         method: "GET",
       }),
-      providesTags: (result, error, id) => [
-        { type: "RECORDED_VIDEO", id },
-      ],
+      providesTags: ["RECORDED_VIDEOS"],
     }),
 
-    updateRecordedVideo: builder.mutation({
+    // ── Update ──────────────────────────────────────────────────────────────────
+    updateRecordedVideo: builder.mutation<
+      IResponse<ICourseRecordedVideo>,
+      { id: string; data: FormData }
+    >({
       query: ({ id, data }) => ({
         url: `/recorded-video/${id}`,
         method: "PATCH",
         data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        "RECORDED_VIDEOS",
-        { type: "RECORDED_VIDEO", id },
-      ],
+      invalidatesTags: ["RECORDED_VIDEOS"],
     }),
 
-    softDeleteRecordedVideo: builder.mutation({
-      query: (id: string) => ({
+    // ── Soft delete ─────────────────────────────────────────────────────────────
+    softDeleteRecordedVideo: builder.mutation<
+      IResponse<{ id: string }>,
+      string // id
+    >({
+      query: (id) => ({
         url: `/recorded-video/soft-delete/${id}`,
         method: "PATCH",
       }),
       invalidatesTags: ["RECORDED_VIDEOS"],
     }),
 
-    deleteRecordedVideo: builder.mutation({
-      query: (id: string) => ({
+    // ── Hard delete ─────────────────────────────────────────────────────────────
+    deleteRecordedVideo: builder.mutation<
+      IResponse<{ id: string }>,
+      string // id
+    >({
+      query: (id) => ({
         url: `/recorded-video/${id}`,
         method: "DELETE",
       }),
@@ -71,8 +157,10 @@ export const recordedVideoApi = baseApi.injectEndpoints({
 
 export const {
   useCreateRecordedVideoMutation,
-  useGetAllRecordedVideosQuery,
-  useGetAllTrashRecordedVideosQuery,
+  useGetRecordedVideosQuery,
+  useGetRecordedVideosByCourseQuery,
+  useGetRecordedVideosByCourseAndSubjectQuery,
+  useGetTrashRecordedVideosQuery,
   useGetSingleRecordedVideoQuery,
   useUpdateRecordedVideoMutation,
   useSoftDeleteRecordedVideoMutation,

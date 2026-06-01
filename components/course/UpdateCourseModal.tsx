@@ -320,7 +320,7 @@ export function UpdateCourseModal({ course, open, onOpenChange, onSuccess }: Upd
         isActive: data.isActive === "true",
         certificate: data.certificate === "true",
         // subject-teacher mapping (always send, even if empty to allow removal)
-        subjectTeachers: subjectTeacherList.map((e) => ({
+        assignSubWithTeacher: subjectTeacherList.map((e) => ({
           subject: e.subjectId,
           teacher: e.teacherId,
         })),

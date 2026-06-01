@@ -1,94 +1,8 @@
-// import { baseApi } from "../baseApi";
 
-// export const courseApi = baseApi.injectEndpoints({
-//   endpoints: (builder) => ({
-//     createCourse: builder.mutation({
-//       query: (formData) => ({
-//         url: "/course/create-course",
-//         method: "POST",
-//         data: formData,
-//       }),
-//       invalidatesTags: ["COURSES"],
-//     }),
-
-//     getMyCourses: builder.query({
-//       query: () => ({
-//         url: "/course/my-courses",
-//         method: "GET",
-//       }),
-//       providesTags: ["COURSES"],
-//     }),
-
-//     getAllCourses: builder.query({
-//       query: (params) => ({
-//         url: "/course/all-courses",
-//         method: "GET",
-//         params,
-//       }),
-//       providesTags: ["COURSES"],
-//     }),
-
-//     getAllTrashCourses: builder.query({
-//       query: (params) => ({
-//         url: "/course/all-trash-courses",
-//         method: "GET",
-//         params,
-//       }),
-//       providesTags: ["COURSES"],
-//     }),
-
-//     getSingleCourse: builder.query({
-//       query: (slug: string) => ({
-//         url: `/course/${slug}`,
-//         method: "GET",
-//       }),
-//       providesTags: (result, error, slug) => [
-//         { type: "COURSE", id: slug },
-//       ],
-//     }),
-
-//     updateCourse: builder.mutation({
-//       query: ({ id, data }) => ({
-//         url: `/course/${id}`,
-//         method: "PATCH",
-//         data,
-//       }),
-//       invalidatesTags: (result, error, { id }) => [
-//         "COURSES",
-//         { type: "COURSE", id },
-//       ],
-//     }),
-
-//     softDeleteCourse: builder.mutation({
-//       query: (id: string) => ({
-//         url: `/course/soft-delete/${id}`,
-//         method: "PATCH",
-//       }),
-//       invalidatesTags: ["COURSES"],
-//     }),
-
-//     deleteCourse: builder.mutation({
-//       query: (id: string) => ({
-//         url: `/course/${id}`,
-//         method: "DELETE",
-//       }),
-//       invalidatesTags: ["COURSES"],
-//     }),
-//   }),
-// });
-
-// export const {
-//   useCreateCourseMutation,
-//   useGetMyCoursesQuery,
-//   useGetAllCoursesQuery,
-//   useGetAllTrashCoursesQuery,
-//   useGetSingleCourseQuery,
-//   useUpdateCourseMutation,
-//   useSoftDeleteCourseMutation,
-//   useDeleteCourseMutation,
-// } = courseApi;
-
+import { IResponse } from "@/types";
 import { baseApi } from "../baseApi";
+import { ICourse } from "@/types/course.types";
+import { IPaginationMeta } from "@/types/user";
 
 export interface CreateCoursePayload {
   title: string;
@@ -110,7 +24,13 @@ export interface CreateCoursePayload {
   assignSubWithTeacher?: { subject: string; teacher: string }[];
 }
 
-export interface UpdateCoursePayload extends Partial<CreateCoursePayload> {}
+export interface GetAllCourseResponse {
+  success: boolean;
+  data: ICourse[];
+  meta: IPaginationMeta;
+}
+
+export interface UpdateCoursePayload extends Partial<CreateCoursePayload> { }
 
 export interface GetCoursesParams {
   page?: number;
@@ -122,9 +42,11 @@ export interface GetCoursesParams {
   status?: string;
 }
 
+
+
 export const courseApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createCourse: builder.mutation<unknown, FormData>({
+    createCourse: builder.mutation<IResponse<ICourse>, FormData>({
       query: (formData) => ({
         url: "/course/create-course",
         method: "POST",
@@ -133,7 +55,7 @@ export const courseApi = baseApi.injectEndpoints({
       invalidatesTags: ["COURSES"],
     }),
 
-    updateCourse: builder.mutation<unknown, { id: string; data: FormData }>({
+    updateCourse: builder.mutation<IResponse<ICourse>, { id: string; data: FormData }>({
       query: ({ id, data }) => ({
         url: `/course/${id}`,
         method: "PATCH",
@@ -142,7 +64,7 @@ export const courseApi = baseApi.injectEndpoints({
       invalidatesTags: ["COURSES"],
     }),
 
-    getCourses: builder.query<unknown, GetCoursesParams>({
+    getCourses: builder.query<GetAllCourseResponse, GetCoursesParams>({
       query: (params) => ({
         url: "/course/all-courses",
         method: "GET",
@@ -151,7 +73,7 @@ export const courseApi = baseApi.injectEndpoints({
       providesTags: ["COURSES"],
     }),
 
-    getTrashCourses: builder.query<unknown, GetCoursesParams>({
+    getTrashCourses: builder.query<GetAllCourseResponse, GetCoursesParams>({
       query: (params) => ({
         url: "/course/all-trash-courses",
         method: "GET",
@@ -160,7 +82,7 @@ export const courseApi = baseApi.injectEndpoints({
       providesTags: ["COURSES"],
     }),
 
-    getSingleCourse: builder.query<unknown, string>({
+    getSingleCourse: builder.query<ICourse, string>({
       query: (slug) => ({
         url: `/course/${slug}`,
         method: "GET",
@@ -168,7 +90,7 @@ export const courseApi = baseApi.injectEndpoints({
       providesTags: ["COURSES"],
     }),
 
-    getMyCourses: builder.query<unknown, void>({
+    getMyCourses: builder.query<GetAllCourseResponse, void>({
       query: () => ({
         url: "/course/my-courses",
         method: "GET",
@@ -176,7 +98,7 @@ export const courseApi = baseApi.injectEndpoints({
       providesTags: ["COURSES"],
     }),
 
-    softDeleteCourse: builder.mutation<unknown, string>({
+    softDeleteCourse: builder.mutation<IResponse<{ id: string }>, string>({
       query: (id) => ({
         url: `/course/soft-delete/${id}`,
         method: "PATCH",
@@ -184,7 +106,7 @@ export const courseApi = baseApi.injectEndpoints({
       invalidatesTags: ["COURSES"],
     }),
 
-    deleteCourse: builder.mutation<unknown, string>({
+    deleteCourse: builder.mutation<IResponse<{ id: string }>, string>({
       query: (id) => ({
         url: `/course/${id}`,
         method: "DELETE",

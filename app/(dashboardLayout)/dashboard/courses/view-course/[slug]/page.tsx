@@ -666,6 +666,22 @@ function LiveClassCard({
   const isLive = liveClass.status === "LIVE";
   const canJoin = (isLive || liveClass.status === "SCHEDULED") && !!liveClass.joinUrl;
 
+    const handleJoin = async (meetingId: string, password: string) => {
+    const sigRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/zoom/signature?meetingNumber=${meetingId}&role=0`
+    );
+
+    const sigJson = await sigRes.json();
+
+    const params = new URLSearchParams({
+      meetingNumber: String(meetingId),
+      password,
+      signature: sigJson.data,
+    });
+
+    window.location.href = `/zoom-meeting?${params.toString()}`;
+  };
+
   return (
     <div className={`bg-white dark:bg-slate-900 rounded-xl border transition-all hover:shadow-md dark:hover:shadow-slate-800/50 overflow-hidden ${isLive ? "border-emerald-300 dark:border-emerald-700 shadow-sm" : "border-slate-200 dark:border-slate-800"}`}>
       {isLive && <div className="h-1 w-full bg-linear-to-r from-emerald-400 to-teal-400" />}
@@ -728,13 +744,18 @@ function LiveClassCard({
 
         {/* Join button */}
         {canJoin && (
-          <a href={liveClass.joinUrl!} target="_blank" rel="noopener noreferrer">
-            <Button size="sm"
+          // <a href={liveClass.joinUrl!} target="_blank" rel="noopener noreferrer">
+            <Button
+            onClick={() =>
+                  handleJoin(liveClass.meetingId as string, liveClass.password as string)
+                }
+            size="sm"
               className={`h-8 text-xs font-bold px-4 gap-1.5 ${isLive ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"} text-white`}>
+                
               <ExternalLink className="w-3.5 h-3.5" />
               {isLive ? "Join Now" : "Join Class"}
             </Button>
-          </a>
+          // </a>
         )}
       </div>
     </div>

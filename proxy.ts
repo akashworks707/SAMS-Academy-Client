@@ -2,20 +2,14 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
+  UserRole,
   getDefaultDashboardRoute,
   getRouteOwner,
   isValidRouteForRole,
-  UserRole,
 } from "./utills/auth-utils";
 
-export const runtime = "nodejs";
-
-export async function middleware(request: NextRequest) {
-const pathname = request.nextUrl.pathname;
-
-const cleanPath = pathname.replace(/^\/(bn|en)(?=\/|$)/, "") || "/";
-
-  const locale = pathname.startsWith("/en") ? "en" : "bn";
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
 
   const accessToken = request.cookies.get("accessToken")?.value;
 
@@ -29,41 +23,40 @@ const cleanPath = pathname.replace(/^\/(bn|en)(?=\/|$)/, "") || "/";
       ) as JwtPayload;
 
       userRole = decoded.role as UserRole;
-    } catch {
-      const res = NextResponse.redirect(
-        new URL(`/${locale}/login`, request.url)
-      );
-
+    } catch (error) {
+      // Invalid token → clear cookies
+      const res = NextResponse.redirect(new URL("/", request.url));
       res.cookies.delete("accessToken");
       res.cookies.delete("refreshToken");
-
       return res;
     }
   }
 
-const routeOwner = getRouteOwner(cleanPath);
+  const routeOwner = getRouteOwner(pathname);
 
+  // 🔹 Public route (homepage, product page etc.)
   if (routeOwner === null) {
     return NextResponse.next();
   }
 
+  // 🔹 Protected route but NOT logged in
   if (!accessToken || !userRole) {
-    return NextResponse.redirect(
-      new URL(`/${locale}/login`, request.url)
-    );
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (!isValidRouteForRole(cleanPath, userRole)) {
+  // 🔹 Role mismatch
+  if (!isValidRouteForRole(pathname, userRole)) {
     return NextResponse.redirect(
       new URL(getDefaultDashboardRoute(userRole), request.url)
     );
   }
 
+  // ✅ Everything OK
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.well-known).*)",
   ],
 };

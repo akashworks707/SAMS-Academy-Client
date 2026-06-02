@@ -201,81 +201,174 @@ export default function Signup() {
     }
   };
 
+  // const onSubmit = async (data: SignupFormType) => {
+  //   try {
+  //     const address = {
+  //       division: data.division || "",
+  //       district: data.district || "",
+  //       thana: data.thana || "",
+  //       union: data.union || "",
+  //     };
+
+  //     const payload: Record<string, any> = {
+  //       name: data.name,
+  //       email: data.email,
+  //       phone: data.phone,
+  //       password: data.password,
+  //       role: data.role,
+  //       address,
+  //     };
+
+  //     // Add role-specific fields
+  //     if (data.role === "STUDENT") {
+  //       payload.guardianName = data.guardianName;
+  //       payload.guardianPhone = data.guardianPhone;
+  //       if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
+  //       if (data.section) payload.section = data.section ?? "";
+  //       if (data.roll !== undefined) payload.roll = data.roll;
+  //     }
+
+  //     if (data.role === "TEACHER") {
+  //       payload.qualification = data.qualification;
+  //       if (data.designation) payload.designation = data.designation ?? "";
+  //       if (data.experience !== undefined) payload.experience = data.experience;
+
+  //       if (data.salary !== undefined) payload.salary = data.salary;
+  //       if (data.bio) payload.bio = data.bio ?? "";
+  //       if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
+  //     }
+
+  //     // Handle picture upload
+  //     const pictureFile = selectedPicture;
+
+  //     const formData = new FormData();
+  //     Object.keys(payload).forEach((key) => {
+  //       if (key === "address") {
+  //         formData.append(key, JSON.stringify(payload[key]));
+  //       } else {
+  //         formData.append(key, payload[key]);
+  //       }
+  //     });
+
+  //     if (pictureFile) {
+  //       formData.append("picture", pictureFile);
+  //     }
+
+  //     // Submit to backend
+  //     const res = await fetch(`${config.baseUrl}/user/create-user`, {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     const result = await res.json();
+
+  //     if (!res.ok) {
+  //       toast.error(result.message || "Registration failed");
+  //       return;
+  //     }
+
+  //     if (result) {
+  //       toast.success("Registration successful!");
+  //       router.push("/login");
+  //     }
+  //   } catch (err: any) {
+  //     console.error("[signup] Error:", err);
+  //     toast.error(err.message || "Something went wrong");
+  //   }
+  // };
+
+
   const onSubmit = async (data: SignupFormType) => {
-    try {
-      const address = {
+  try {
+    const payload: Record<string, any> = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      password: data.password,
+      role: data.role,
+
+      address: {
         division: data.division || "",
         district: data.district || "",
         thana: data.thana || "",
         union: data.union || "",
-      };
+      },
+    };
 
-      const payload: Record<string, any> = {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-        role: data.role,
-        address,
-      };
+    // STUDENT
+    if (data.role === "STUDENT") {
+      payload.guardianName = data.guardianName;
+      payload.guardianPhone = data.guardianPhone;
 
-      // Add role-specific fields
-      if (data.role === "STUDENT") {
-        payload.guardianName = data.guardianName;
-        payload.guardianPhone = data.guardianPhone;
-        if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
-        if (data.section) payload.section = data.section ?? "";
-        if (data.roll !== undefined) payload.roll = data.roll;
+      if (data.dateOfBirth) {
+        payload.dateOfBirth = new Date(data.dateOfBirth).toISOString();
       }
 
-      if (data.role === "TEACHER") {
-        payload.qualification = data.qualification;
-        if (data.designation) payload.designation = data.designation ?? "";
-        if (data.experience !== undefined) payload.experience = data.experience;
-
-        if (data.salary !== undefined) payload.salary = data.salary;
-        if (data.bio) payload.bio = data.bio ?? "";
-        if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
+      if (data.section) {
+        payload.section = data.section;
       }
 
-      // Handle picture upload
-      const pictureFile = selectedPicture;
-
-      const formData = new FormData();
-      Object.keys(payload).forEach((key) => {
-        if (key === "address") {
-          formData.append(key, JSON.stringify(payload[key]));
-        } else {
-          formData.append(key, payload[key]);
-        }
-      });
-
-      if (pictureFile) {
-        formData.append("picture", pictureFile);
+      if (data.roll !== undefined) {
+        payload.roll = data.roll;
       }
-
-      // Submit to backend
-      const res = await fetch(`${config.baseUrl}/user/create-user`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        toast.error(result.message || "Registration failed");
-        return;
-      }
-
-      if (result) {
-        toast.success("Registration successful!");
-        router.push("/login");
-      }
-    } catch (err: any) {
-      console.error("[signup] Error:", err);
-      toast.error(err.message || "Something went wrong");
     }
-  };
+
+    // TEACHER
+    if (data.role === "TEACHER") {
+      payload.qualification = data.qualification;
+
+      if (data.designation) {
+        payload.designation = data.designation;
+      }
+
+      if (data.experience !== undefined) {
+        payload.experience = data.experience;
+      }
+
+      if (data.salary !== undefined) {
+        payload.salary = data.salary;
+      }
+
+      if (data.bio) {
+        payload.bio = data.bio;
+      }
+
+      if (data.dateOfBirth) {
+        payload.dateOfBirth = new Date(data.dateOfBirth).toISOString();
+      }
+
+      // Same as CreateTeacherModal
+      payload.assignedSubjects = [];
+      payload.assignedCourses = [];
+    }
+
+    const formData = new FormData();
+
+    // IMPORTANT
+    formData.append("data", JSON.stringify(payload));
+
+    if (selectedPicture) {
+      formData.append("picture", selectedPicture);
+    }
+
+    const res = await fetch(`${config.baseUrl}/user/create-user`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result?.message || "Registration failed");
+    }
+
+    toast.success("Registration successful!");
+    router.push("/login");
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err?.message || "Something went wrong");
+  }
+};
 
   return (
     <div className="min-h-screen py-6 px-3 bg-slate-200 dark:bg-background">

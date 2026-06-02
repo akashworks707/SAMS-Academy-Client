@@ -22,6 +22,9 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Image from "next/image";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import { useUser } from "@/context/UserContext";
+import { getSidebarData } from "@/utills/getSidebarData";
+import { UserRole } from "@/utills/auth-utils";
 
 interface NavItem {
   key: string;
@@ -74,103 +77,43 @@ const SidebarLogo = () => {
   );
 };
 
-const NavItems = () => {
-  const t = useTranslations();
-  const pathname = usePathname();
 
-  const items: NavItem[] = [
-    {
-      key: "dashboard",
-      href: "/dashboard",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-      label: t("dashboard"),
-    },
-    {
-      key: "classes",
-      href: "/dashboard/classes",
-      icon: <BookOpen className="w-5 h-5" />,
-      label: t("classes"),
-    },
-    {
-      key: "courses",
-      href: "/dashboard/courses",
-      icon: <BookMarked className="w-5 h-5" />,
-      label: t("courses"),
-    },
-    {
-      key: "subjects",
-      href: "/dashboard/subjects",
-      icon: <BookMarked className="w-5 h-5" />,
-      label: t("subjects"),
-    },
-    {
-      key: "teachers",
-      href: "/dashboard/teachers",
-      icon: <Users className="w-5 h-5" />,
-      label: t("teachers"),
-    },
-    {
-      key: "students",
-      href: "/dashboard/students",
-      icon: <UserCheck className="w-5 h-5" />,
-      label: t("students"),
-    },
-    {
-      key: "enrollments",
-      href: "/dashboard/enrollments",
-      icon: <UserPlus className="w-5 h-5" />,
-      label: t("enrollments"),
-    },
-    {
-      key: "payments",
-      href: "/dashboard/payments",
-      icon: <CreditCard className="w-5 h-5" />,
-      label: t("student_payments"),
-    },
-    {
-      key: "commission",
-      href: "/dashboard/commission",
-      icon: <TrendingUp className="w-5 h-5" />,
-      label: t("marketing_commission"),
-    },
-    // {
-    //   key: "videos",
-    //   href: "/dashboard/videos",
-    //   icon: <PlayCircle className="w-5 h-5" />,
-    //   label: t("recorded_videos"),
-    // },
-    // {
-    //   key: "zoom",
-    //   href: "/dashboard/zoom",
-    //   icon: <Video className="w-5 h-5" />,
-    //   label: t("zoom_meetings"),
-    // },
-  ];
+const NavItems = () => {
+  const pathname = usePathname();
+  const { user } = useUser();
+
+  const sidebarGroups = getSidebarData(user?.role as UserRole);
+
+  const accessibleItems =
+    sidebarGroups?.flatMap((group) => group.items) ?? [];
 
   return (
     <nav className="flex-1 px-4 py-6 space-y-2">
-      {items.map((item) => {
+      {accessibleItems.map((item) => {
         const isActive =
-          pathname === item.href || pathname?.startsWith(`${item.href}/`);
+          pathname === item.url || pathname?.startsWith(`${item.url}/`);
+
         return (
           <Link
-            key={item.key}
-            href={item.href}
+            key={item.title}
+            href={item.url}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+              "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
               isActive
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
-                : "text-slate-300 hover:text-white hover:bg-slate-700/50",
+                ? "bg-blue-600 text-white"
+                : "text-slate-300 hover:text-white hover:bg-slate-700/50"
             )}
           >
-            {item.icon}
-            <span className="font-medium text-sm">{item.label}</span>
+            <item.icon className="w-5 h-5" />
+            <span className="font-medium text-sm">{item.title}</span>
           </Link>
         );
       })}
     </nav>
   );
 };
+
+
 
 const ProfileCard = () => {
   const t = useTranslations();
@@ -190,13 +133,13 @@ const ProfileCard = () => {
 const SidebarContent = () => {
   return (
     <>
-    <SidebarLogo />
-    <ScrollArea className="max-h-[75vh]">
-      <NavItems />
-      <ScrollBar orientation="vertical" />
-    </ScrollArea>
+      <SidebarLogo />
+      <ScrollArea className="max-h-[75vh]">
+        <NavItems />
+        <ScrollBar orientation="vertical" />
+      </ScrollArea>
       <ProfileCard />
-      </>
+    </>
   );
 };
 

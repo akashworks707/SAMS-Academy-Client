@@ -59,6 +59,19 @@ const statusConfig = {
   completed: { label: "Completed", dot: "bg-slate-400", badge: "text-[11px] px-2 py-0.5 border font-medium bg-white/90 dark:bg-slate-900/90 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-amber-800 backdrop-blur-sm" },
 };
 
+export const getDashboardBasePath = (role: "ADMIN" | "TEACHER" | "STUDENT") => {
+  switch (role) {
+    case "ADMIN":
+      return "/admin/dashboard";
+    case "TEACHER":
+      return "/teacher/dashboard";
+    case "STUDENT":
+      return "/student/dashboard";
+    default:
+      return "/";
+  }
+};
+
 // ─── Skeleton Card ────────────────────────────────────────────────────────────
 
 function CourseCardSkeleton() {
@@ -97,6 +110,7 @@ export default function CourseManagement() {
   const { user } = useUser();
 
   const userRole = user?.role;
+  if (!userRole) return null;
 
 
   const openEditDialog = (course: CourseItem) => { setEditingCourse(course); setIsEditOpen(true); };
@@ -283,7 +297,9 @@ export default function CourseManagement() {
 
                     }
 
-                    <Link href={`/dashboard/courses/view-course/${course.slug}`} className="block w-full">
+                    <Link
+                      href={`${getDashboardBasePath(userRole)}/courses/view-course/${course.slug}`}
+                      className="block w-full">
                       <Button
                         variant="outline"
                         size="sm"

@@ -9,17 +9,17 @@ export type RouteConfig = {
 
 export const studentRoutes: RouteConfig = {
   exact: ["/student/dashboard"],
-  patterns: [/^\/student\/dashboard/],
+  patterns: [/^\/student/],
 };
 
-export const TEACHERRoutes: RouteConfig = {
-  exact: ["/staff/dashboard"],
-  patterns: [/^\/staff\/dashboard(?!\/owner)/],
+export const teacherRoutes: RouteConfig = {
+  exact: ["/teacher/dashboard"],
+  patterns: [/^\/teacher\/dashboard/],
 };
 
 export const adminRoutes: RouteConfig = {
-  exact: ["/staff/dashboard/admin"],
-  patterns: [/^\/staff\/dashboard\/admin/],
+  exact: ["/admin/dashboard"],
+  patterns: [/^\/admin\/dashboard/],
 };
 
 
@@ -33,13 +33,13 @@ export const isRouteMatches = (
 
 export const getRouteOwner = (
   pathname: string
-): UserRole | "TEACHER" | null => {
+): UserRole | null => {
 
   if (isRouteMatches(pathname, adminRoutes)) {
     return "ADMIN";
   }
 
-  if (isRouteMatches(pathname, TEACHERRoutes)) {
+  if (isRouteMatches(pathname, teacherRoutes)) {
     return "TEACHER";
   }
 
@@ -79,7 +79,7 @@ export const getDefaultDashboardRoute = (
   role: UserRole
 ): string => {
   if (role === "STUDENT") return "/student/dashboard";
-  if (role === "TEACHER") return "/staff/dashboard";
-  if (role === "ADMIN") return "/staff/dashboard";
+  if (role === "TEACHER") return "/teacher/dashboard";
+  if (role === "ADMIN") return "/admin/dashboard";
   return "/";
 };

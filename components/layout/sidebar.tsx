@@ -5,19 +5,6 @@ import React, { useState, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "@/i18n/routing";
-import {
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  BookMarked,
-  UserCheck,
-  CreditCard,
-  TrendingUp,
-  X,
-  UserPlus,
-  PlayCircle,
-  Video,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Image from "next/image";
@@ -25,13 +12,6 @@ import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { useUser } from "@/context/UserContext";
 import { getSidebarData } from "@/utills/getSidebarData";
 import { UserRole } from "@/utills/auth-utils";
-
-interface NavItem {
-  key: string;
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}
 
 interface SidebarContextType {
   isOpen: boolean;
@@ -51,8 +31,6 @@ export const useSidebar = () => {
 };
 
 const SidebarLogo = () => {
-  const locale = useLocale();
-  const isBangla = locale === "bn";
 
   return (
     <div className="border-b border-slate-700">
@@ -61,9 +39,7 @@ const SidebarLogo = () => {
           <div className="absolute inset-0 bg-linear-to-r from-blue-500/10 to-purple-500/10 group-hover:opacity-100 opacity-0 transition-opacity duration-300" />
 
           <Image
-            src={
-              isBangla ? "/logos/sams-logo-bn.jpeg" : "/logos/sams-logo-en.jpeg"
-            }
+            src={"/logos/sams-logo-en.jpeg"}
             alt="School Logo"
             width={600}
             height={200}
@@ -115,18 +91,31 @@ const NavItems = () => {
 
 
 
-const ProfileCard = () => {
+const DevelopedByCard = () => {
   const t = useTranslations();
   return (
-    <div className="p-4 border-t border-slate-700">
-      <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-colors">
-        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-600" />
-        <div className="text-left flex-1">
-          <div className="text-sm font-semibold text-white">অ্যাডমিন</div>
-          <div className="text-xs text-slate-400">রাশেদুল</div>
-        </div>
-      </button>
-    </div>
+    <Link
+      href="https://dotskillsbd.com"
+      target="_blank"
+    >
+      <div className="p-4 border-t border-slate-700 fixed bottom-0 bg-slate-900">
+        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-600">
+            <Image
+              src={"/logos/dotskills-logo2.png"}
+              alt="Profile Avatar"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div className="text-left flex-1">
+            <div className="text-sm font-semibold text-white">Developed By</div>
+            <div className="text-xs text-slate-400">Dotskills</div>
+          </div>
+        </button>
+      </div>
+    </Link>
   );
 };
 
@@ -138,7 +127,7 @@ const SidebarContent = () => {
         <NavItems />
         <ScrollBar orientation="vertical" />
       </ScrollArea>
-      <ProfileCard />
+      <DevelopedByCard />
     </>
   );
 };

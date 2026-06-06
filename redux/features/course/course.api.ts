@@ -43,6 +43,43 @@ export interface GetCoursesParams {
 }
 
 
+interface CourseItem {
+  _id: string;
+  title: string;
+  slug?: string;
+  description?: string;
+  thumbnail?: string;
+  class?: { _id: string; title: string } | string;
+  batch?: string;
+  regularPrice?: number;
+  discountPrice?: number;
+  courseStartDate?: string;
+  courseEndDate?: string;
+  duration?: string;
+  totalClasses?: number;
+  status?: "upcoming" | "running" | "completed";
+  isFeatured?: boolean;
+  isActive?: boolean;
+  certificate?: boolean;
+  ratings?: number;
+}
+
+export interface IEnrollment {
+  _id: string;
+  student: string;
+  course: CourseItem;
+  transactionId: string;
+  status: "PENDING" | "COMPLETED" | "FAILED";
+  progress: number;
+  createdBy: string;
+  isActive: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+
 
 export const courseApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -90,10 +127,11 @@ export const courseApi = baseApi.injectEndpoints({
       providesTags: ["COURSES"],
     }),
 
-    getMyCourses: builder.query<GetAllCourseResponse, void>({
-      query: () => ({
+    getMyCourses: builder.query<IEnrollment[], GetCoursesParams>({
+      query: (params) => ({
         url: "/course/my-courses",
         method: "GET",
+        params,
       }),
       providesTags: ["COURSES"],
     }),

@@ -15,7 +15,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
    <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <main className="lg:ml-56 mt-16 p-4 md:p-6">
+      <main className="lg:ml-56 mt-16 p-4 md:p-6 overflow-y-auto">
         {children}
       </main>
     </div>

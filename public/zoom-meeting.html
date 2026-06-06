@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Class</title>
+
+    <!-- coi-serviceworker: enables SharedArrayBuffer without server headers -->
+    <script src="/coi-serviceworker.js"></script>
+
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; background: #0f172a; overflow: hidden; }
+
+      #loading {
+        position: fixed; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 12px;
+        background: #0f172a; z-index: 9999;
+        color: #94a3b8; font-family: system-ui, sans-serif;
+        transition: opacity 0.3s;
+      }
+      .spinner {
+        width: 40px; height: 40px;
+        border: 3px solid #1e40af; border-top-color: #60a5fa;
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .loading-text { font-size: 14px; font-weight: 500; }
+      .loading-sub  { font-size: 12px; color: #475569; }
+
+      #error {
+        display: none; position: fixed; inset: 0;
+        flex-direction: column; align-items: center; justify-content: center;
+        gap: 12px; background: #0f172a;
+        color: #94a3b8; font-family: system-ui, sans-serif;
+        text-align: center; padding: 24px;
+      }
+      #error h2  { color: #f8fafc; font-size: 18px; }
+      #error p   { font-size: 13px; color: #64748b; max-width: 320px; }
+      #error button {
+        margin-top: 8px; padding: 8px 20px;
+        background: transparent; border: 1px solid #334155;
+        border-radius: 8px; color: #94a3b8; cursor: pointer; font-size: 13px;
+      }
+      #error button:hover { background: #1e293b; }
+
+      /* meetingSDKElement must fill the page */
+      #meetingSDKElement {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <p class="loading-text" id="loading-text">Loading Zoom SDK...</p>
+      <p class="loading-sub">Please allow camera & microphone access when prompted</p>
+    </div>
+
+    <div id="error">
+      <h2>Failed to join</h2>
+      <p id="error-msg">Something went wrong</p>
+      <button onclick="notifyParent('leave')">Go back</button>
+    </div>
+
+    <!-- Component View renders here — no host CSS conflict -->
+    <div id="meetingSDKElement"></div>
+
+    <script type="module">
+      // ── Import ZoomMtgEmbedded via npm CDN (esm.sh) ─────────────────────────
+      import ZoomMtgEmbedded from "https://esm.sh/@zoom/meetingsdk@3.11.0/embedded";
+
+      // ── Helpers ──────────────────────────────────────────────────────────────
+      function setLoadingText(msg) {
+        document.getElementById("loading-text").textContent = msg;
+      }
+      function showError(msg) {
+        document.getElementById("loading").style.display  = "none";
+        document.getElementById("error").style.display    = "flex";
+        document.getElementById("error-msg").textContent  = msg || "Something went wrong";
+      }
+      function hideLoading() {
+        document.getElementById("loading").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("loading").style.display = "none";
+        }, 300);
+      }
+      function notifyParent(type, data) {
+        try { window.parent.postMessage({ type, data: data || {} }, "*"); } catch(e) {}
+      }
+
+      // ── Read URL params ──────────────────────────────────────────────────────
+      const params        = new URLSearchParams(window.location.search);
+      const meetingNumber = params.get("meetingNumber");
+      const password      = params.get("password") || "";
+      const signature     = params.get("signature");
+      const sdkKey        = params.get("sdkKey");
+      const userName      = params.get("userName") || "Guest";
+
+      console.log("[Zoom Component] Params:", { meetingNumber, sdkKey, userName });
+
+      if (!meetingNumber || !signature || !sdkKey) {
+        showError("Missing meeting parameters");
+      } else {
+        startMeeting();
+      }
+
+      // ── Component View implementation (official doc) ─────────────────────────
+      async function startMeeting() {
+        try {
+          setLoadingText("Initializing Zoom...");
+
+          // Step 1: Create client
+          const client = ZoomMtgEmbedded.createClient();
+
+          // Step 2: Get the root element
+          const meetingSDKElement = document.getElementById("meetingSDKElement");
+
+          // Step 3: Init — pass zoomAppRoot as per official docs
+          await client.init({
+            zoomAppRoot: meetingSDKElement,
+            language: "en-US",
+            patchJsMedia: true,
+            customize: {
+              video: {
+                isResizable: true,
+                viewSizes: {
+                  default: {
+                    width:  window.innerWidth,
+                    height: window.innerHeight,
+                  },
+                },
+              },
+            },
+          });
+
+          setLoadingText("Joining meeting...");
+          console.log("[Zoom Component] Init success, joining...");
+
+          // Step 4: Join
+          await client.join({
+            sdkKey,
+            signature,
+            meetingNumber,
+            password,
+            userName,
+          });
+
+          console.log("[Zoom Component] Join success");
+          hideLoading();
+          notifyParent("joined");
+
+          // Step 5: Listen for connection change (leave/end)
+          client.on("connection-change", (payload) => {
+            console.log("[Zoom Component] connection-change", payload);
+            if (payload?.state === "Closed" || payload?.state === "Fail") {
+              notifyParent("leave");
+            }
+          });
+
+        } catch(err) {
+          console.error("[Zoom Component] Error:", err);
+          const msg = err?.reason ?? err?.message ?? JSON.stringify(err) ?? "Failed to start meeting";
+          showError(msg);
+          notifyParent("error", { message: msg });
+        }
+      }
+    </script>
+  </body>
+</html>

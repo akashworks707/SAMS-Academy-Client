@@ -8,7 +8,7 @@ export type RouteConfig = {
 
 
 export const studentRoutes: RouteConfig = {
-  exact: ["/student/dashboard"],
+  exact: ["/student/dashboard/courses"],
   patterns: [/^\/student/],
 };
 
@@ -78,7 +78,7 @@ export const isValidRouteForRole = (
 export const getDefaultDashboardRoute = (
   role: UserRole
 ): string => {
-  if (role === "STUDENT") return "/student/dashboard";
+  if (role === "STUDENT") return "/student/dashboard/courses";
   if (role === "TEACHER") return "/teacher/dashboard";
   if (role === "ADMIN") return "/admin/dashboard";
   return "/";

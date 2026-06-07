@@ -1,176 +1,317 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Zoom Meeting</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { width: 100vw; height: 100vh; overflow: hidden; background: #000; }
+      #zmmtg-root { width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="zmmtg-root"></div>
+
+    <script>
+      const params        = new URLSearchParams(window.location.search);
+      const meetingNumber = params.get("meetingNumber");
+      const password      = params.get("password");
+      const signature     = params.get("signature");
+      const sdkKey        = params.get("sdkKey");
+      const userName      = params.get("userName") || "Guest";
+      // leaveUrl — course page URL passed from LiveClassesTab
+      const leaveUrl      = params.get("leaveUrl") || "/";
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      function loadCSS(href) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = href;
+        document.head.appendChild(link);
+      }
+
+      async function initZoom() {
+        try {
+          loadCSS("https://source.zoom.us/3.11.0/css/bootstrap.css");
+
+          await loadScript("https://source.zoom.us/3.11.0/lib/vendor/react.min.js");
+          await loadScript("https://source.zoom.us/3.11.0/lib/vendor/react-dom.min.js");
+          await loadScript("https://source.zoom.us/3.11.0/lib/vendor/redux.min.js");
+          await loadScript("https://source.zoom.us/3.11.0/lib/vendor/redux-thunk.min.js");
+          await loadScript("https://source.zoom.us/3.11.0/lib/vendor/lodash.min.js");
+          await loadScript("https://source.zoom.us/3.11.0/zoom-meeting-3.11.0.min.js");
+
+          ZoomMtg.setZoomJSLib("https://source.zoom.us/3.11.0/lib", "/av");
+          ZoomMtg.preLoadWasm();
+          ZoomMtg.prepareWebSDK();
+
+          ZoomMtg.init({
+            leaveUrl,  // ← course page URL — leave করলে এখানে redirect হবে
+            success: function () {
+              ZoomMtg.join({
+                meetingNumber: Number(meetingNumber),
+                userName,
+                signature,
+                sdkKey,
+                passWord: password,
+                success: function (s) {
+                  console.log("Join success", s);
+                },
+                error: function (e) {
+                  console.error("Join error", e);
+                },
+              });
+            },
+            error: function (e) {
+              console.error("Init error", e);
+            },
+          });
+        } catch (err) {
+          console.error("Script load error:", err);
+        }
+      }
+
+      initZoom();
+    </script>
+  </body>
+</html> -->
+
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Live Class</title>
-
-    <!-- coi-serviceworker: enables SharedArrayBuffer without server headers -->
-    <script src="/coi-serviceworker.js"></script>
-
+    <title>Zoom Meeting</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; background: #0f172a; overflow: hidden; }
+      body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: system-ui, sans-serif; }
 
-      #loading {
-        position: fixed; inset: 0;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center; gap: 12px;
-        background: #0f172a; z-index: 9999;
-        color: #94a3b8; font-family: system-ui, sans-serif;
-        transition: opacity 0.3s;
-      }
-      .spinner {
-        width: 40px; height: 40px;
-        border: 3px solid #1e40af; border-top-color: #60a5fa;
-        border-radius: 50%; animation: spin 0.8s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .loading-text { font-size: 14px; font-weight: 500; }
-      .loading-sub  { font-size: 12px; color: #475569; }
+      /* Zoom root — full screen like original, navbar floats above it */
+      #zmmtg-root { width: 100%; height: 100%; }
 
-      #error {
-        display: none; position: fixed; inset: 0;
-        flex-direction: column; align-items: center; justify-content: center;
-        gap: 12px; background: #0f172a;
-        color: #94a3b8; font-family: system-ui, sans-serif;
-        text-align: center; padding: 24px;
-      }
-      #error h2  { color: #f8fafc; font-size: 18px; }
-      #error p   { font-size: 13px; color: #64748b; max-width: 320px; }
-      #error button {
-        margin-top: 8px; padding: 8px 20px;
-        background: transparent; border: 1px solid #334155;
-        border-radius: 8px; color: #94a3b8; cursor: pointer; font-size: 13px;
-      }
-      #error button:hover { background: #1e293b; }
-
-      /* meetingSDKElement must fill the page */
-      #meetingSDKElement {
-        width: 100%;
-        height: 100%;
+      /* Navbar floats on top of Zoom */
+      #navbar {
         position: fixed;
-        inset: 0;
+        top: 0; left: 0; right: 0;
+        height: 44px;
+        background: rgba(10, 15, 30, 0.92);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        z-index: 99999;
+        gap: 12px;
       }
+
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex: 1;
+      }
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .nav-logo img {
+        width: 28px; height: 28px;
+        border-radius: 6px; object-fit: contain;
+      }
+      .nav-logo-name {
+        font-size: 14px; font-weight: 700;
+        color: #f1f5f9; white-space: nowrap;
+      }
+      .nav-sep {
+        width: 1px; height: 18px;
+        background: rgba(255,255,255,0.12);
+        flex-shrink: 0;
+      }
+      .nav-live-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%; background: #10b981;
+        flex-shrink: 0;
+        animation: livepulse 1.5s infinite;
+      }
+      @keyframes livepulse {
+        0%,100% { opacity: 1; }
+        50%      { opacity: 0.4; }
+      }
+      .nav-class-title {
+        font-size: 13px; font-weight: 600;
+        color: #e2e8f0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: 280px;
+      }
+      .nav-subject {
+        padding: 2px 8px;
+        background: rgba(59,130,246,0.18);
+        border: 1px solid rgba(59,130,246,0.25);
+        border-radius: 20px;
+        font-size: 11px; font-weight: 600;
+        color: #93c5fd;
+        white-space: nowrap; flex-shrink: 0;
+      }
+
+      .nav-right {
+        display: flex; align-items: center;
+        gap: 10px; flex-shrink: 0;
+      }
+      .nav-time {
+        font-size: 12px; color: #64748b; white-space: nowrap;
+      }
+      .nav-avatar {
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#1d4ed8,#7c3aed);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 700; color: #fff;
+        flex-shrink: 0;
+      }
+      .nav-username {
+        font-size: 12px; color: #94a3b8;
+        max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .leave-btn {
+        display: flex; align-items: center; gap: 5px;
+        padding: 5px 12px;
+        background: #dc2626; color: #fff;
+        border: none; border-radius: 7px;
+        font-size: 12px; font-weight: 600;
+        cursor: pointer; white-space: nowrap;
+        transition: background 0.15s;
+      }
+      .leave-btn:hover { background: #b91c1c; }
     </style>
   </head>
   <body>
 
-    <div id="loading">
-      <div class="spinner"></div>
-      <p class="loading-text" id="loading-text">Loading Zoom SDK...</p>
-      <p class="loading-sub">Please allow camera & microphone access when prompted</p>
+    <!-- Navbar — floats above Zoom -->
+    <div id="navbar">
+      <div class="nav-left">
+        <div class="nav-logo">
+          <img src="/logos/sams-logo-en.jpeg" alt="logo" onerror="this.style.display='none'" />
+          <span class="nav-logo-name">SAMS Academy</span>
+        </div>
+        <div class="nav-sep"></div>
+        <div class="nav-live-dot"></div>
+        <span class="nav-class-title" id="nav-title">Live Class</span>
+        <span class="nav-subject" id="nav-subject" style="display:none"></span>
+      </div>
+      <div class="nav-right">
+        <span class="nav-time" id="nav-time"></span>
+        <div class="nav-avatar" id="nav-avatar">?</div>
+        <span class="nav-username" id="nav-user"></span>
+        <button class="leave-btn" onclick="window.location.href=leaveUrl">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Leave
+        </button>
+      </div>
     </div>
 
-    <div id="error">
-      <h2>Failed to join</h2>
-      <p id="error-msg">Something went wrong</p>
-      <button onclick="notifyParent('leave')">Go back</button>
-    </div>
+    <!-- Zoom renders here — full screen, same as original -->
+    <div id="zmmtg-root"></div>
 
-    <!-- Component View renders here — no host CSS conflict -->
-    <div id="meetingSDKElement"></div>
-
-    <script type="module">
-      // ── Import ZoomMtgEmbedded via npm CDN (esm.sh) ─────────────────────────
-      import ZoomMtgEmbedded from "https://esm.sh/@zoom/meetingsdk@3.11.0/embedded";
-
-      // ── Helpers ──────────────────────────────────────────────────────────────
-      function setLoadingText(msg) {
-        document.getElementById("loading-text").textContent = msg;
-      }
-      function showError(msg) {
-        document.getElementById("loading").style.display  = "none";
-        document.getElementById("error").style.display    = "flex";
-        document.getElementById("error-msg").textContent  = msg || "Something went wrong";
-      }
-      function hideLoading() {
-        document.getElementById("loading").style.opacity = "0";
-        setTimeout(() => {
-          document.getElementById("loading").style.display = "none";
-        }, 300);
-      }
-      function notifyParent(type, data) {
-        try { window.parent.postMessage({ type, data: data || {} }, "*"); } catch(e) {}
-      }
-
-      // ── Read URL params ──────────────────────────────────────────────────────
+    <script>
       const params        = new URLSearchParams(window.location.search);
       const meetingNumber = params.get("meetingNumber");
       const password      = params.get("password") || "";
       const signature     = params.get("signature");
       const sdkKey        = params.get("sdkKey");
       const userName      = params.get("userName") || "Guest";
+      const leaveUrl      = params.get("leaveUrl") || "/";
+      const classTitle    = params.get("classTitle") || "Live Class";
+      const subjectName   = params.get("subjectName") || "";
 
-      console.log("[Zoom Component] Params:", { meetingNumber, sdkKey, userName });
-
-      if (!meetingNumber || !signature || !sdkKey) {
-        showError("Missing meeting parameters");
-      } else {
-        startMeeting();
+      // Populate navbar
+      document.getElementById("nav-title").textContent = classTitle;
+      document.getElementById("nav-user").textContent  = userName;
+      document.getElementById("nav-avatar").textContent = userName.charAt(0).toUpperCase();
+      if (subjectName) {
+        const el = document.getElementById("nav-subject");
+        el.textContent = subjectName;
+        el.style.display = "inline-flex";
       }
 
-      // ── Component View implementation (official doc) ─────────────────────────
-      async function startMeeting() {
+      // Clock
+      function tick() {
+        document.getElementById("nav-time").textContent =
+          new Date().toLocaleTimeString("en-BD", { hour:"2-digit", minute:"2-digit", hour12:true });
+      }
+      tick(); setInterval(tick, 1000);
+
+      // Script loader
+      function loadScript(src) {
+        return new Promise((res, rej) => {
+          const s = document.createElement("script");
+          s.src = src; s.onload = res;
+          s.onerror = () => rej(new Error("Failed: " + src));
+          document.head.appendChild(s);
+        });
+      }
+      function loadCSS(href) {
+        const l = document.createElement("link");
+        l.rel = "stylesheet"; l.href = href;
+        document.head.appendChild(l);
+      }
+
+      // Init Zoom — identical to original working code
+      async function initZoom() {
+        const BASE = "https://source.zoom.us/3.11.0";
         try {
-          setLoadingText("Initializing Zoom...");
+          loadCSS(BASE + "/css/bootstrap.css");
+          await loadScript(BASE + "/lib/vendor/react.min.js");
+          await loadScript(BASE + "/lib/vendor/react-dom.min.js");
+          await loadScript(BASE + "/lib/vendor/redux.min.js");
+          await loadScript(BASE + "/lib/vendor/redux-thunk.min.js");
+          await loadScript(BASE + "/lib/vendor/lodash.min.js");
+          await loadScript(BASE + "/zoom-meeting-3.11.0.min.js");
 
-          // Step 1: Create client
-          const client = ZoomMtgEmbedded.createClient();
+          ZoomMtg.setZoomJSLib(BASE + "/lib", "/av");
+          ZoomMtg.preLoadWasm();
+          ZoomMtg.prepareWebSDK();
 
-          // Step 2: Get the root element
-          const meetingSDKElement = document.getElementById("meetingSDKElement");
-
-          // Step 3: Init — pass zoomAppRoot as per official docs
-          await client.init({
-            zoomAppRoot: meetingSDKElement,
-            language: "en-US",
-            patchJsMedia: true,
-            customize: {
-              video: {
-                isResizable: true,
-                viewSizes: {
-                  default: {
-                    width:  window.innerWidth,
-                    height: window.innerHeight,
-                  },
-                },
-              },
+          ZoomMtg.init({
+            leaveUrl,
+            success: function () {
+              ZoomMtg.join({
+                meetingNumber: Number(meetingNumber),
+                userName,
+                signature,
+                sdkKey,
+                passWord: password,
+                success: function (s) { console.log("Join success", s); },
+                error:   function (e) { console.error("Join error", e); },
+              });
             },
+            error: function (e) { console.error("Init error", e); },
           });
-
-          setLoadingText("Joining meeting...");
-          console.log("[Zoom Component] Init success, joining...");
-
-          // Step 4: Join
-          await client.join({
-            sdkKey,
-            signature,
-            meetingNumber,
-            password,
-            userName,
-          });
-
-          console.log("[Zoom Component] Join success");
-          hideLoading();
-          notifyParent("joined");
-
-          // Step 5: Listen for connection change (leave/end)
-          client.on("connection-change", (payload) => {
-            console.log("[Zoom Component] connection-change", payload);
-            if (payload?.state === "Closed" || payload?.state === "Fail") {
-              notifyParent("leave");
-            }
-          });
-
-        } catch(err) {
-          console.error("[Zoom Component] Error:", err);
-          const msg = err?.reason ?? err?.message ?? JSON.stringify(err) ?? "Failed to start meeting";
-          showError(msg);
-          notifyParent("error", { message: msg });
+        } catch (err) {
+          console.error("Load error:", err);
         }
       }
+
+      initZoom();
     </script>
   </body>
 </html>

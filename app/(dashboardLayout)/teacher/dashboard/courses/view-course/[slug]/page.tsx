@@ -44,7 +44,7 @@
 // import {
 //   useCreateMeetingMutation,
 //   useDeleteMeetingMutation,
-//   useGetLiveClassesByCourseAndSubjectQuery,
+//   useGetLiveClassesByCourseQuery,
 //   useSoftDeleteMeetingMutation,
 //   useUpdateMeetingMutation,
 // } from "@/redux/features/zoom/zoom.api";
@@ -792,7 +792,7 @@
 
 //   // ── Fetch live classes ─────────────────────────────────────────────────────
 //   const { data: liveResponse, isLoading: liveLoading, refetch: refetchLive } =
-//     useGetLiveClassesByCourseAndSubjectQuery(course?._id, { skip: !course?._id });
+//     useGetLiveClassesByCourseQuery(course?._id, { skip: !course?._id });
 //   const allLiveClasses: ILiveClass[] = (liveResponse as any)?.data ?? [];
 
 //   // ── Filter ─────────────────────────────────────────────────────────────────

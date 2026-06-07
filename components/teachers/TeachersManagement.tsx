@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Edit2, Trash2, Search, GraduationCap, Users, Eye } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +24,9 @@ import { useGetAllTeachersQuery, useDeleteUserMutation } from "@/redux/features/
 import { CreateTeacherModal } from "./CreateTeacherModal";
 import { UpdateTeacherModal } from "./UpdateTeacherModal";
 import { TeacherDetailsModal } from "./TeacherDetailsModal";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
+import { useGetCoursesQuery } from "@/redux/features/course/course.api";
+import { Pagination } from "../pagination/pagination";
 
 // ─── Skeleton Card ─────────────────────────────────────────────────────────────
 
@@ -61,11 +65,27 @@ export default function TeacherManagement() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [deletingTeacher, setDeletingTeacher] = useState<any | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const limit = 3;
 
-  const { data, isLoading, refetch } = useGetAllTeachersQuery(
-    searchTerm ? { searchTerm } : undefined
-  );
+  const { data, isLoading, refetch } = useGetAllTeachersQuery({
+    searchTerm: searchTerm || undefined,
+    course:
+      courseFilter !== "all" ? courseFilter : undefined,
+    page,
+    limit,
+  });
+  const { data: CoursesData, isLoading: isCoursesLoading, refetch: refetchCourses } = useGetCoursesQuery({
+    searchTerm: searchTerm || undefined,
+    limit: 100,
+  });
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+
+  const meta = data?.meta;
+
+  const totalPage = meta?.totalPage || 1;
+  const currentPage = meta?.page || page;
 
   const teachers: any[] = data?.data ?? [];
 
@@ -84,16 +104,20 @@ export default function TeacherManagement() {
     setIsDeleteOpen(true);
   };
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, courseFilter]);
+
   const handleDelete = async () => {
     if (!deletingTeacher) return;
     try {
       await deleteUser(deletingTeacher._id).unwrap();
-      toast.success("শিক্ষক সফলভাবে মুছে ফেলা হয়েছে");
+      toast.success("Teacher deleted successfully");
       setIsDeleteOpen(false);
       setDeletingTeacher(null);
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "মুছতে ব্যর্থ হয়েছে");
+      toast.error(error?.data?.message || "Failed to delete teacher");
     }
   };
 
@@ -101,51 +125,50 @@ export default function TeacherManagement() {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="শিক্ষক পরিচালনা"
-        description="সকল শিক্ষক সদস্য পরিচালনা করুন এবং তাদের তথ্য নিয়ন্ত্রণ করুন"
+        title="Teacher Management"
+        description="Manage all teaching staff and control their information"
         breadcrumbs={[
-          { label: "ড্যাশবোর্ড", href: "/dashboard" },
-          { label: "শিক্ষক পরিচালনা" },
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Teacher Management" },
         ]}
         action={<CreateTeacherModal onSuccess={refetch} />}
       />
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-            <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">মোট শিক্ষক</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isLoading ? "—" : data?.meta?.total ?? teachers.length}
-            </p>
-          </div>
+      {/* Search + Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="Search by name, email or ID..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-violet-500 dark:text-violet-400" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">মোট পাতা</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isLoading ? "—" : data?.meta?.totalPage ?? 1}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          placeholder="নাম, ইমেইল বা পদবী দিয়ে অনুসন্ধান করুন..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <Select
+          value={courseFilter}
+          onValueChange={(v) => setCourseFilter(String(v))}
+        >
+          <SelectTrigger className="w-74! h-9 text-sm">
+            <span>
+              {courseFilter === "all"
+                ? "All Courses"
+                : CoursesData?.data?.find((c: any) => c._id === courseFilter)?.title || "Select course"}
+            </span>
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All Courses</SelectItem>
+
+            {CoursesData?.data?.map((course: any) => (
+              <SelectItem key={course._id} value={course._id}>
+                {course.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Grid */}
@@ -157,119 +180,233 @@ export default function TeacherManagement() {
             <GraduationCap className="w-12 h-12 mb-4 opacity-30" />
             {searchTerm ? (
               <>
-                <p className="text-base font-medium">কোনো ফলাফল পাওয়া যায়নি</p>
-                <p className="text-sm mt-1">&quot;{searchTerm}&quot; দিয়ে কোনো শিক্ষক খুঁজে পাওয়া যায়নি</p>
+                <p className="text-base font-medium">No results found</p>
+                <p className="text-sm mt-1">No teacher found matching &quot;{searchTerm}&quot;</p>
               </>
             ) : (
               <>
-                <p className="text-base font-medium">কোনো শিক্ষক যোগ করা হয়নি</p>
-                <p className="text-sm mt-1">নতুন শিক্ষক বাটনে ক্লিক করে শুরু করুন</p>
+                <p className="text-base font-medium">No teachers added yet</p>
+                <p className="text-sm mt-1">Click the Add Teacher button to get started</p>
               </>
             )}
           </div>
         ) : (
           teachers.map((teacher) => {
-            teacher
             const profileId = teacher._id;
             const address = teacher.address;
-            const hasAddress = address && (address.division || address.district || address.thana || address.union);
+            const hasAddress =
+              address &&
+              (address.division || address.district || address.thana || address.union);
 
             return (
+              // <div
+              //   key={profileId}
+              //   className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 hover:shadow-lg dark:hover:shadow-slate-800/50 transition-all flex flex-col"
+              // >
+              //   {/* Header */}
+              //   <div className="flex items-start justify-between mb-4">
+              //     {teacher?.picture ? (
+              //       <img
+              //         src={teacher.picture}
+              //         alt={teacher.name}
+              //         className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+              //       />
+              //     ) : (
+              //       <div className="w-12 h-12 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+              //         {teacher?.name?.charAt(0)?.toUpperCase() ?? "T"}
+              //       </div>
+              //     )}
+              //     <Badge
+              //       variant="outline"
+              //       className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
+              //     >
+              //       <span className="h-1.5 w-1.5 rounded-full mr-1.5 inline-block bg-emerald-500" />
+              //       Active
+              //     </Badge>
+              //   </div>
+
+              //   {/* Name + Designation */}
+              //   <h3 className="font-semibold text-slate-900 dark:text-white mb-0.5 truncate">
+              //     {teacher?.name ?? "—"}
+              //   </h3>
+              //   <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              //     {teacher.designation ?? "Teacher"}
+              //   </p>
+
+              //   {/* Details */}
+              //   <div className="space-y-1.5 text-sm mb-4 flex-1">
+              //     <p className="text-slate-600 dark:text-slate-400 truncate">
+              //       <span className="font-medium">Email:</span> {teacher?.email ?? "—"}
+              //     </p>
+              //     <p className="text-slate-600 dark:text-slate-400">
+              //       <span className="font-medium">Phone:</span> {teacher?.phone ?? "—"}
+              //     </p>
+              //     {teacher.qualification && (
+              //       <p className="text-slate-600 dark:text-slate-400 truncate">
+              //         <span className="font-medium">Qualification:</span> {teacher.qualification}
+              //       </p>
+              //     )}
+              //     {teacher.experience > 0 && (
+              //       <p className="text-slate-600 dark:text-slate-400">
+              //         <span className="font-medium">Experience:</span> {teacher.experience}{" "}
+              //         {teacher.experience === 1 ? "year" : "years"}
+              //       </p>
+              //     )}
+              //     {hasAddress && (
+              //       <p className="text-slate-600 dark:text-slate-400 truncate">
+              //         <span className="font-medium">Address:</span>{" "}
+              //         {[address.thana, address.district].filter(Boolean).join(", ")}
+              //       </p>
+              //     )}
+              //   </div>
+
+              //   {/* Actions */}
+              //   <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+              //     <Button
+              //       variant="outline"
+              //       size="sm"
+              //       className="flex-1"
+              //       onClick={() => openEditDialog(teacher)}
+              //     >
+              //       <Edit2 className="w-4 h-4 mr-1.5" />
+              //       Edit
+              //     </Button>
+              //     <Button
+              //       variant="outline"
+              //       size="sm"
+              //       className="px-3"
+              //       title="View details"
+              //       onClick={() => openDetailsDialog(teacher)}
+              //     >
+              //       <Eye className="w-4 h-4" />
+              //     </Button>
+              //     <Button
+              //       variant="destructive"
+              //       size="sm"
+              //       className="px-3"
+              //       title="Delete"
+              //       onClick={() => openDeleteDialog(teacher)}
+              //     >
+              //       <Trash2 className="w-4 h-4" />
+              //     </Button>
+              //   </div>
+              // </div>
+
               <div
                 key={profileId}
-                className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 hover:shadow-lg dark:hover:shadow-slate-800/50 transition-all flex flex-col"
+                className="group relative rounded-2xl border border-slate-200/70 dark:border-slate-800 
+  bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl 
+  shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
               >
+                {/* Glow effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-linear-to-br from-emerald-500/5 via-transparent to-teal-500/5 pointer-events-none" />
+
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  {teacher?.picture ? (
-                    <img
-                      src={teacher.picture}
-                      alt={teacher.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
-                      {teacher?.name?.charAt(0)?.toUpperCase() ?? "T"}
+                <div className="flex items-center justify-between p-5 pb-3">
+                  <div className="flex items-center gap-3">
+                    {teacher?.picture ? (
+                      <img
+                        src={teacher.picture}
+                        alt={teacher.name}
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-linear-to-br from-emerald-400 via-teal-500 to-cyan-500 
+        flex items-center justify-center text-white font-bold text-lg shadow-md">
+                        {teacher?.name?.charAt(0)?.toUpperCase() ?? "T"}
+                      </div>
+                    )}
+
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white leading-tight">
+                        {teacher?.name ?? "Unknown Teacher"}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {teacher.designation ?? "Subject Teacher"}
+                      </p>
                     </div>
-                  )}
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full mr-1.5 inline-block bg-emerald-500" />
-                    সক্রিয়
-                  </Badge>
+                  </div>
+
+                  {/* Status */}
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium 
+    bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Active
+                  </div>
                 </div>
 
-                {/* Name + Designation */}
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-0.5 truncate">
-                  {teacher?.name ?? "—"}
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                  {teacher.designation ?? "শিক্ষক"}
-                </p>
+                {/* Body */}
+                <div className="px-5 pb-4 space-y-2 text-sm flex-1">
+                  <div className="grid grid-cols-1 gap-1 text-slate-600 dark:text-slate-400">
+                    <p className="truncate">
+                      <span className="text-slate-500">Email:</span> {teacher?.email ?? "—"}
+                    </p>
 
-                {/* Details */}
-                <div className="space-y-1.5 text-sm mb-4 flex-1">
-                  <p className="text-slate-600 dark:text-slate-400 truncate">
-                    <span className="font-medium">ইমেইল:</span> {teacher?.email ?? "—"}
-                  </p>
-                  <p className="text-slate-600 dark:text-slate-400">
-                    <span className="font-medium">মোবাইল:</span> {teacher?.phone ?? "—"}
-                  </p>
-                  {teacher.qualification && (
-                    <p className="text-slate-600 dark:text-slate-400 truncate">
-                      <span className="font-medium">যোগ্যতা:</span> {teacher.qualification}
+                    <p>
+                      <span className="text-slate-500">Phone:</span> {teacher?.phone ?? "—"}
                     </p>
-                  )}
-                  {teacher.experience > 0 && (
-                    <p className="text-slate-600 dark:text-slate-400">
-                      <span className="font-medium">অভিজ্ঞতা:</span> {teacher.experience} বছর
-                    </p>
-                  )}
-                  {hasAddress && (
-                    <p className="text-slate-600 dark:text-slate-400 truncate">
-                      <span className="font-medium">ঠিকানা:</span>{" "}
-                      {[address.thana, address.district].filter(Boolean).join(", ")}
-                    </p>
-                  )}
+
+                    {teacher.qualification && (
+                      <p className="truncate">
+                        <span className="text-slate-500">Qualification:</span> {teacher.qualification}
+                      </p>
+                    )}
+
+                    {teacher.experience > 0 && (
+                      <p>
+                        <span className="text-slate-500">Experience:</span>{" "}
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                          {teacher.experience} {teacher.experience === 1 ? "year" : "years"}
+                        </span>
+                      </p>
+                    )}
+
+                  </div>
+
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+
+                {/* Footer Actions */}
+                <div className="mt-auto border-t border-slate-200/70 dark:border-slate-800 p-3 flex gap-2 bg-slate-50/40 dark:bg-slate-800/20">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
                     onClick={() => openEditDialog(teacher)}
                   >
                     <Edit2 className="w-4 h-4 mr-1.5" />
-                    সম্পাদনা
+                    Edit
                   </Button>
+
                   <Button
                     variant="outline"
                     size="sm"
-                    className="px-3"
-                    title="বিস্তারিত দেখুন"
+                    className="rounded-xl px-3 hover:bg-slate-100 dark:hover:bg-slate-800"
                     onClick={() => openDetailsDialog(teacher)}
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
+
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="px-3"
-                    title="মুছুন"
+                    className="rounded-xl px-3"
                     onClick={() => openDeleteDialog(teacher)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
+
               </div>
             );
           })
         )}
       </div>
+        <Pagination
+          page={currentPage}
+          totalPage={totalPage}
+          onPageChange={setPage}
+        />
 
       {/* Update Modal */}
       {editingTeacher && (
@@ -294,20 +431,20 @@ export default function TeacherManagement() {
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>শিক্ষক মুছুন</AlertDialogTitle>
+            <AlertDialogTitle>Delete Teacher</AlertDialogTitle>
             <AlertDialogDescription>
-              আপনি কি <strong>{deletingTeacher?.userId?.name}</strong> কে মুছে ফেলতে
-              নিশ্চিত? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+              Are you sure you want to delete{" "}
+              <strong>{deletingTeacher?.name}</strong>? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2">
-            <AlertDialogCancel disabled={isDeleting}>বাতিল করুন</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              {isDeleting ? "মুছছে..." : "মুছুন"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

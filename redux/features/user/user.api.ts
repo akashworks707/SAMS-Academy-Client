@@ -151,6 +151,7 @@ export interface GetUsersParams {
   searchTerm?: string;
   sort?: string;
   role?: string;
+  course?: string;
 }
 
 interface GetAllUsersResponse {
@@ -220,7 +221,7 @@ export const userApi = baseApi.injectEndpoints({
     }),
 
     // Get all students
-    getAllStudents: builder.query<unknown, GetUsersParams | undefined>({
+    getAllStudents: builder.query<GetAllUsersResponse, GetUsersParams | undefined>({
       query: (params) => ({
         url: "/user/all-students",
         method: "GET",

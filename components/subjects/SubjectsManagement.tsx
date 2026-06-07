@@ -69,15 +69,15 @@ export default function SubjectsManagement() {
     if (!deletingSubject) return;
     try {
       await softDeleteSubject(deletingSubject._id).unwrap();
-      toast.success("বিষয় সরানো হয়েছে", {
-        description: `"${deletingSubject.title}" ট্র্যাশে সরানো হয়েছে।`,
+      toast.success("Subject removed", {
+        description: `"${deletingSubject.title}" has been moved to trash.`,
       });
       setIsDeleteOpen(false);
       setDeletingSubject(null);
       refetch();
     } catch (error: any) {
-      toast.error("মুছে ফেলা ব্যর্থ হয়েছে", {
-        description: error?.data?.message ?? "বিষয়টি মুছতে সমস্যা হয়েছে।",
+      toast.error("Delete failed", {
+        description: error?.data?.message ?? "There was a problem deleting the subject.",
       });
     }
   };
@@ -92,27 +92,27 @@ export default function SubjectsManagement() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="বিষয় পরিচালনা"
-        description="সকল বিষয় এবং পাঠ্যক্রম পরিচালনা করুন"
+        title="Subjects Management"
+        description="Manage all subjects and curricula"
         breadcrumbs={[
-          { label: "ড্যাশবোর্ড", href: "/dashboard" },
-          { label: "বিষয়" },
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Subjects" },
         ]}
         action={<CreateSubjectModal onSuccess={refetch} />}
       />
 
-      {/* অনুসন্ধান বার */}
+      {/* Search Bar */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
-          placeholder="নাম বা কোড দিয়ে অনুসন্ধান করুন..."
+          placeholder="Search by name or code..."
           className="pl-9 h-10"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {/* বিষয় গ্রিড */}
+      {/* Subjects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {isSubjectsLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -132,11 +132,11 @@ export default function SubjectsManagement() {
         ) : subjects.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
             <BookOpen className="w-12 h-12 mb-3 opacity-30" />
-            <p className="font-medium">কোনো বিষয় পাওয়া যায়নি</p>
+            <p className="font-medium">No subjects found</p>
             <p className="text-sm mt-1">
               {searchTerm
-                ? "অন্য কোনো শব্দ দিয়ে অনুসন্ধান করুন"
-                : "শুরু করতে প্রথম বিষয়টি তৈরি করুন"}
+                ? "Try searching with a different keyword"
+                : "Create your first subject to get started"}
             </p>
           </div>
         ) : (
@@ -156,7 +156,7 @@ export default function SubjectsManagement() {
                       : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
                   }
                 >
-                  {subject.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                  {subject.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>
 
@@ -184,7 +184,7 @@ export default function SubjectsManagement() {
                   onClick={() => openEditDialog(subject)}
                 >
                   <Edit2 className="w-3.5 h-3.5 mr-1.5" />
-                  সম্পাদনা
+                  Edit
                 </Button>
                 <Button
                   variant="outline"
@@ -193,7 +193,7 @@ export default function SubjectsManagement() {
                   onClick={() => openDeleteDialog(subject)}
                 >
                   <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                  মুছুন
+                  Delete
                 </Button>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function SubjectsManagement() {
         )}
       </div>
 
-      {/* আপডেট মডাল */}
+      {/* Update Modal */}
       {editingSubject && (
         <UpdateSubjectModal
           subject={editingSubject}
@@ -214,27 +214,27 @@ export default function SubjectsManagement() {
         />
       )}
 
-      {/* মুছে ফেলার নিশ্চিতকরণ */}
+      {/* Delete Confirmation */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>বিষয় মুছুন</AlertDialogTitle>
+            <AlertDialogTitle>Delete Subject</AlertDialogTitle>
             <AlertDialogDescription>
-              আপনি কি{" "}
+              Are you sure you want to delete{" "}
               <span className="font-semibold text-slate-900 dark:text-white">
                 {deletingSubject?.title}
-              </span>{" "}
-              মুছতে নিশ্চিত? এটি ট্র্যাশে সরানো হবে।
+              </span>
+              ? It will be moved to trash.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end mt-2">
-            <AlertDialogCancel disabled={isDeleting}>বাতিল করুন</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSubject}
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? "মুছে ফেলা হচ্ছে..." : "মুছুন"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

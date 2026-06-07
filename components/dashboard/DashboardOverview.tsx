@@ -67,7 +67,7 @@ export default function DashboardOverview() {
       trend: stats.studentTrend,
       trendDirection: "up" as const,
       color: "blue" as const,
-      description: "মোটো ছাত্র সংখ্যা",
+      description: "Total number of students",
     },
     {
       title: t("total_classes"),
@@ -76,7 +76,7 @@ export default function DashboardOverview() {
       trend: stats.classTrend,
       trendDirection: "up" as const,
       color: "green" as const,
-      description: "মোট ক্লাস সংখ্যা",
+      description: "Total number of classes",
     },
     {
       title: t("total_teachers"),
@@ -85,7 +85,7 @@ export default function DashboardOverview() {
       trend: stats.teacherTrend,
       trendDirection: "up" as const,
       color: "purple" as const,
-      description: "মোট শিক্ষক সংখ্যা",
+      description: "Total number of teachers",
     },
     {
       title: t("total_subjects"),
@@ -94,7 +94,7 @@ export default function DashboardOverview() {
       trend: stats.subjectTrend,
       trendDirection: "up" as const,
       color: "orange" as const,
-      description: "মোট বিষয় সংখ্যা",
+      description: "Total number of subjects",
     },
     {
       title: t("total_payments"),
@@ -103,7 +103,7 @@ export default function DashboardOverview() {
       trend: stats.paymentTrend,
       trendDirection: "up" as const,
       color: "red" as const,
-      description: "মোট পেমেন্ট পরিমাণ",
+      description: "Total payment amount",
       format: "currency",
     },
     {
@@ -113,7 +113,7 @@ export default function DashboardOverview() {
       trend: stats.commissionTrend,
       trendDirection: "up" as const,
       color: "pink" as const,
-      description: "মোট মার্কেটিং কমিশন",
+      description: "Total marketing commission",
       format: "currency",
     },
   ];
@@ -121,26 +121,26 @@ export default function DashboardOverview() {
   const classColumns = [
     {
       key: "code" as const,
-      label: "ক্লাস কোড",
+      label: "Class Code",
     },
     {
       key: "name" as const,
-      label: "ক্লাসের নাম",
+      label: "Class Name",
     },
     {
       key: "classTeacher" as const,
-      label: "ক্লাস শিক্ষক",
+      label: "Class Teacher",
     },
     {
       key: "totalStudents" as const,
-      label: "মোট ছাত্র",
+      label: "Total Students",
     },
     {
       key: "status" as const,
-      label: "অবস্থা",
+      label: "Status",
       render: (value: string) => (
         <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">
-          {value === "active" ? "সক্রিয়" : "নিষ্ক্রিয়"}
+          {value === "active" ? "Active" : "Inactive"}
         </span>
       ),
     },
@@ -149,40 +149,40 @@ export default function DashboardOverview() {
   const paymentColumns = [
     {
       key: "id" as const,
-      label: "পেমেন্ট আইডি",
+      label: "Payment ID",
     },
     {
       key: "studentName" as const,
-      label: "ছাত্রের নাম",
+      label: "Student Name",
     },
     {
       key: "amount" as const,
-      label: "পরিমাণ",
+      label: "Amount",
       render: (value: number) => `৳ ${value.toLocaleString("bn-BD")}`,
     },
     {
       key: "date" as const,
-      label: "তারিখ",
+      label: "Date",
     },
     {
       key: "status" as const,
-      label: "অবস্থা",
+      label: "Status",
       render: (value: string) => {
         const statusMap = {
           completed: {
             bg: "bg-green-100 dark:bg-green-900",
             text: "text-green-700 dark:text-green-300",
-            label: "সম্পন্ন",
+            label: "Completed",
           },
           pending: {
             bg: "bg-yellow-100 dark:bg-yellow-900",
             text: "text-yellow-700 dark:text-yellow-300",
-            label: "অপেক্ষমাণ",
+            label: "Pending",
           },
           failed: {
             bg: "bg-red-100 dark:bg-red-900",
             text: "text-red-700 dark:text-red-300",
-            label: "ব্যর্থ",
+            label: "Failed",
           },
         };
         const status =
@@ -267,7 +267,7 @@ export default function DashboardOverview() {
                 dot={{ fill: "#3b82f6", r: 4 }}
                 activeDot={{ r: 6 }}
                 isAnimationActive={true}
-                name="পেমেন্ট মূল্য"
+                name="Payment Value"
               />
             </LineChart>
           </ResponsiveContainer>

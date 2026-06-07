@@ -255,11 +255,11 @@ export default function CourseManagement() {
                   </h3>
 
                   {/* Description */}
-                  {course.description && (
+                  {/* {course.description && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
                       {course.description}
                     </p>
-                  )}
+                  )} */}
 
                   {/* Meta info */}
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400 mb-3 mt-auto">

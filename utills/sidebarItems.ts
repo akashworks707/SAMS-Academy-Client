@@ -6,9 +6,7 @@ export const studentSidebar = [
   {
     title: "Student",
     items: [
-      // { title: "Dashboard", url: "/student/dashboard", icon: LayoutDashboardIcon },
       { title: "My Courses", url: "/student/dashboard/courses", icon: BookOpen },
-      // { title: "Live Class", url: "/student/dashboard/live-class", icon: Video },
     ],
   },
 ];
@@ -19,8 +17,6 @@ export const teacherSidebar = [
     items: [
       { title: "Dashboard", url: "/teacher/dashboard", icon: LayoutDashboardIcon },
       { title: "Courses", url: "/teacher/dashboard/courses", icon: BookOpen },
-      { title: "Live Class", url: "/teacher/dashboard/live-class", icon: Video },
-      { title: "Students", url: "/teacher/dashboard/students", icon: Users },
     ],
   },
 ];

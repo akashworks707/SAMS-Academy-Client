@@ -1053,9 +1053,9 @@ function StatCard({
 }) {
   const colorMap = {
     emerald: { bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: "text-emerald-600 dark:text-emerald-400", text: "text-emerald-600 dark:text-emerald-400" },
-    blue:    { bg: "bg-blue-50 dark:bg-blue-900/20",       icon: "text-blue-600 dark:text-blue-400",       text: "text-blue-600 dark:text-blue-400"       },
-    violet:  { bg: "bg-violet-50 dark:bg-violet-900/20",   icon: "text-violet-600 dark:text-violet-400",   text: "text-violet-600 dark:text-violet-400"   },
-    amber:   { bg: "bg-amber-50 dark:bg-amber-900/20",     icon: "text-amber-600 dark:text-amber-400",     text: "text-amber-600 dark:text-amber-400"     },
+    blue: { bg: "bg-blue-50 dark:bg-blue-900/20", icon: "text-blue-600 dark:text-blue-400", text: "text-blue-600 dark:text-blue-400" },
+    violet: { bg: "bg-violet-50 dark:bg-violet-900/20", icon: "text-violet-600 dark:text-violet-400", text: "text-violet-600 dark:text-violet-400" },
+    amber: { bg: "bg-amber-50 dark:bg-amber-900/20", icon: "text-amber-600 dark:text-amber-400", text: "text-amber-600 dark:text-amber-400" },
   };
   const c = colorMap[color];
 
@@ -1094,21 +1094,21 @@ function SortIcon({
 // ─── Main Component ──────────────────────────────────────────────────────────────
 
 export default function TeacherManagement() {
-  const [searchTerm, setSearchTerm]     = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState("all");
-  const [sortField, setSortField]       = useState<SortField | null>(null);
-  const [sortDir, setSortDir]           = useState<SortDir>(null);
-  const [startDate, setStartDate]       = useState("");
-  const [endDate, setEndDate]           = useState("");
-  const [page, setPage]                 = useState(1);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [page, setPage] = useState(1);
   const limit = 10;
 
-  const [editingTeacher, setEditingTeacher]   = useState<any | null>(null);
-  const [isUpdateOpen, setIsUpdateOpen]       = useState(false);
-  const [viewingTeacher, setViewingTeacher]   = useState<any | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen]     = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<any | null>(null);
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [viewingTeacher, setViewingTeacher] = useState<any | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [deletingTeacher, setDeletingTeacher] = useState<any | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen]       = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   // analytics sort params — only for analytics fields
   const isAnalyticsSort = sortField
@@ -1117,9 +1117,9 @@ export default function TeacherManagement() {
 
   const analyticsParams = {
     ...(startDate && { startDate }),
-    ...(endDate   && { endDate }),
+    ...(endDate && { endDate }),
     ...(isAnalyticsSort && sortField && { sortBy: sortField }),
-    ...(isAnalyticsSort && sortDir   && { sortOrder: sortDir }),
+    ...(isAnalyticsSort && sortDir && { sortOrder: sortDir }),
   };
 
   const { data: analyticsData, isLoading: isAnalyticsLoading } =
@@ -1136,35 +1136,36 @@ export default function TeacherManagement() {
   const { data: CoursesData } = useGetCoursesQuery({ limit: 100 });
 
   // ── Derived analytics ──
+  const stats = analyticsData?.data?.stats;
   const teacherSummary = analyticsData?.data?.revenue?.teacherRevenue?.[0]?.summary?.[0];
-  const courseSummary  = analyticsData?.data?.revenue?.courseRevenue?.summary;
-  const totalRevenue   = analyticsData?.data?.revenue?.totalRevenue?.totalRevenue ?? 0;
+  const courseSummary = analyticsData?.data?.revenue?.courseRevenue?.summary;
+  const totalRevenue = analyticsData?.data?.revenue?.totalRevenue?.totalRevenue ?? 0;
 
   const teacherRevenueMap = useMemo(() => {
     const map: Record<string, { perClassSalary: number; totalClasses: number; totalRevenue: number }> = {};
     (analyticsData?.data?.revenue?.teacherRevenue?.[0]?.teachers ?? []).forEach((t: any) => {
       map[t.teacherId] = {
         perClassSalary: t.perClassSalary,
-        totalClasses:   t.totalClasses,
-        totalRevenue:   t.totalRevenue,
+        totalClasses: t.totalClasses,
+        totalRevenue: t.totalRevenue,
       };
     });
     return map;
   }, [analyticsData]);
 
-  const meta      = data?.meta;
+  const meta = data?.meta;
   const totalPage = meta?.totalPage || 1;
   const teachers: any[] = data?.data ?? [];
 
   const hasActiveFilters = courseFilter !== "all";
-  const hasDateFilter    = !!(startDate || endDate);
+  const hasDateFilter = !!(startDate || endDate);
 
   useEffect(() => { setPage(1); }, [searchTerm, courseFilter]);
 
   // ── Sort handler ──
   const handleSort = (field: SortField) => {
-    if (sortField !== field) { setSortField(field); setSortDir("asc");  return; }
-    if (sortDir === "asc")   { setSortDir("desc");                       return; }
+    if (sortField !== field) { setSortField(field); setSortDir("asc"); return; }
+    if (sortDir === "asc") { setSortDir("desc"); return; }
     setSortField(null); setSortDir(null);
   };
 
@@ -1185,31 +1186,28 @@ export default function TeacherManagement() {
     });
   }, [teachers, sortField, sortDir, isAnalyticsSort]);
 
-  // analytics sort → backend already returned sorted; just align by teacherRevenueMap order
+  // analytics sort → backend already returned sorted; just align by order
   const displayTeachers = useMemo(() => {
     if (!isAnalyticsSort || !sortField || !sortDir) return sortedTeachers;
 
-    const analyticsOrder = (analyticsData?.data?.teacherRevenue?.[0]?.teachers ?? [])
+    const analyticsOrder = (analyticsData?.data?.revenue?.teacherRevenue?.[0]?.teachers ?? [])
       .map((t: any) => t.teacherId);
 
-    const inMap  = sortedTeachers.filter((t) => analyticsOrder.includes(t._id));
+    const inMap = sortedTeachers.filter((t) => analyticsOrder.includes(t._id));
     const notInMap = sortedTeachers.filter((t) => !analyticsOrder.includes(t._id));
 
-    inMap.sort(
-      (a, b) => analyticsOrder.indexOf(a._id) - analyticsOrder.indexOf(b._id)
-    );
+    inMap.sort((a, b) => analyticsOrder.indexOf(a._id) - analyticsOrder.indexOf(b._id));
 
-    // teachers with no analytics data go to end
     return [...inMap, ...notInMap];
   }, [sortedTeachers, isAnalyticsSort, sortField, sortDir, analyticsData]);
 
   // ── Misc handlers ──
-  const clearFilters  = () => setCourseFilter("all");
+  const clearFilters = () => setCourseFilter("all");
   const clearDateFilter = () => { setStartDate(""); setEndDate(""); };
 
-  const openEditDialog    = (t: any) => { setEditingTeacher(t);   setIsUpdateOpen(true);  };
-  const openDetailsDialog = (t: any) => { setViewingTeacher(t);   setIsDetailsOpen(true); };
-  const openDeleteDialog  = (t: any) => { setDeletingTeacher(t);  setIsDeleteOpen(true);  };
+  const openEditDialog = (t: any) => { setEditingTeacher(t); setIsUpdateOpen(true); };
+  const openDetailsDialog = (t: any) => { setViewingTeacher(t); setIsDetailsOpen(true); };
+  const openDeleteDialog = (t: any) => { setDeletingTeacher(t); setIsDeleteOpen(true); };
 
   const handleDelete = async () => {
     if (!deletingTeacher) return;
@@ -1302,23 +1300,23 @@ export default function TeacherManagement() {
             />
             <StatCard
               label="Total Teachers"
-              value={displayTeachers.length ?? 0}
-              sub="Active now"
+              value={stats?.totalTeachers ?? 0}
+              sub={`${teacherSummary?.totalTeachers ?? 0} with completed classes`}
               icon={GraduationCap}
               color="blue"
             />
             <StatCard
-              label="Total Courses"
-              value={courseSummary?.totalCourses ?? 0}
-              sub={`৳${(courseSummary?.totalRevenue ?? 0).toLocaleString()} course revenue`}
-              icon={BookOpen}
+              label="Total Students"
+              value={stats?.totalStudents ?? 0}
+              sub={`${stats?.totalEnrollments ?? 0} total enrollments`}
+              icon={Users}
               color="violet"
             />
             <StatCard
-              label="Total Teachers"
-              value={teacherSummary?.totalTeachers ?? 0}
-              sub={`With completed classes`}
-              icon={Users}
+              label="Total Courses"
+              value={stats?.totalCourses ?? 0}
+              sub={`৳${totalRevenue.toLocaleString()} overall revenue`}
+              icon={BookOpen}
               color="amber"
             />
           </>
@@ -1368,14 +1366,14 @@ export default function TeacherManagement() {
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50 dark:bg-slate-800/50">
-                <SortableTh field="name"          label="Teacher"       />
-                <SortableTh field="phone"         label="Phone"         />
-                <SortableTh field="designation"   label="Designation"   />
+                <SortableTh field="name" label="Teacher" />
+                <SortableTh field="phone" label="Phone" />
+                <SortableTh field="designation" label="Designation" />
                 {/* <SortableTh field="qualification" label="Qualification" /> */}
-                <SortableTh field="experience"    label="Experience"    />
+                <SortableTh field="experience" label="Experience" />
                 <SortableTh field="perClassSalary" label="Salary/Class" />
-                <SortableTh field="totalClasses"  label="Total Classes" />
-                <SortableTh field="totalRevenue"  label="Total Revenue" />
+                <SortableTh field="totalClasses" label="Total Classes" />
+                <SortableTh field="totalRevenue" label="Total Revenue" />
                 <TableHead className="whitespace-nowrap">Status</TableHead>
                 <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
               </TableRow>

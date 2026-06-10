@@ -570,7 +570,7 @@ export default function CourseManagement() {
   const { data: analyticsData, isLoading: isAnalyticsLoading } =
     useGetAllAnalyticsQuery(analyticsParams);
 
-    console.log("all analytics data in course management", analyticsData)
+  console.log("all analytics data in course management", analyticsData)
 
   const { data: coursesData, isLoading, refetch } = useGetCoursesQuery({
     searchTerm: searchTerm || undefined,
@@ -579,6 +579,10 @@ export default function CourseManagement() {
   const [softDeleteCourse, { isLoading: isDeleting }] = useSoftDeleteCourseMutation();
 
   // ── Derived analytics ──
+  // const courseSummary = analyticsData?.data?.revenue?.courseRevenue?.summary;
+  // const totalRevenue = analyticsData?.data?.revenue?.totalRevenue?.totalRevenue ?? 0;
+  // ── Derived analytics ── (path fix)
+  const stats = analyticsData?.data?.stats;
   const courseSummary = analyticsData?.data?.revenue?.courseRevenue?.summary;
   const totalRevenue = analyticsData?.data?.revenue?.totalRevenue?.totalRevenue ?? 0;
 
@@ -720,7 +724,6 @@ export default function CourseManagement() {
             )}
           </div>
         </div>
-
         {isAnalyticsLoading ? (
           <>
             <StatCardSkeleton />
@@ -731,31 +734,31 @@ export default function CourseManagement() {
         ) : (
           <>
             <StatCard
-              label="Total Course Revenue"
-              value={`৳${(courseSummary?.totalRevenue ?? 0).toLocaleString()}`}
-              sub={`${courseSummary?.totalCourses ?? 0} revenue-generating courses`}
+              label="Total Revenue"
+              value={`৳${(stats?.totalRevenue ?? 0).toLocaleString()}`}
+              sub={`${stats?.totalTransactions ?? 0} transactions`}
               icon={DollarSign}
               color="emerald"
             />
             <StatCard
-              label="Total Students"
-              value={courseSummary?.totalStudents ?? 0}
-              sub="Enrolled with completed payment"
-              icon={Users}
+              label="Total Courses"
+              value={stats?.totalCourses ?? 0}
+              sub={`${stats?.totalActiveCourses ?? 0} active`}
+              icon={BookOpen}
               color="blue"
             />
             <StatCard
-              label="Total Courses"
-              value={courseSummary?.totalCourses ?? 0}
-              sub="With at least one enrollment"
-              icon={BookOpen}
+              label="Running Courses"
+              value={stats?.runningCourses ?? 0}
+              sub={`${stats?.upcomingCourses ?? 0} upcoming`}
+              icon={TrendingUp}
               color="violet"
             />
             <StatCard
-              label="Overall Revenue"
-              value={`৳${totalRevenue.toLocaleString()}`}
-              sub={`${analyticsData?.data?.totalRevenue?.totalTransactions ?? 0} transactions`}
-              icon={TrendingUp}
+              label="Completed Courses"
+              value={stats?.completedCourses ?? 0}
+              sub={`${stats?.totalEnrollments ?? 0} total enrollments`}
+              icon={Users}
               color="amber"
             />
           </>
@@ -777,7 +780,7 @@ export default function CourseManagement() {
         <Select
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(String(v))}
-          >
+        >
           <SelectTrigger className="w-44! h-9 text-sm">
             <span>
               {statusFilter === "all"

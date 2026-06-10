@@ -1538,7 +1538,7 @@ export default function ViewCoursePage() {
           <LiveClassesTab
             courseId={course?._id ?? ""}
             subjects={subjects}
-            isAdmin={isAdmin}
+            userRole={user?.role}
             userName={user?.email ?? "Guest"}
           />
         )}

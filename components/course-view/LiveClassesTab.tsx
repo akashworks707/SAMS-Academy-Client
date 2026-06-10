@@ -1054,6 +1054,7 @@ import {
 } from "@/redux/features/zoom/zoom.api";
 
 import { ILiveClass, ISubjectResolved, liveStatusConfig, statusLabel, formatDateTime } from "@/types/course-view.types";
+import { IUser, Role } from "@/types";
 
 
 // ─── Form State ────────────────────────────────────────────────────────────────
@@ -1344,18 +1345,22 @@ function LiveClassCard({
 interface LiveClassesTabProps {
   courseId: string;
   subjects: ISubjectResolved[];
-  isAdmin: boolean;
+  userRole: any;
   userName?: string;
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
-export function LiveClassesTab({ courseId, subjects, isAdmin, userName = "Guest" }: LiveClassesTabProps) {
+export function LiveClassesTab({ courseId, subjects, userRole, userName = "Guest" }: LiveClassesTabProps) {
   const [liveSubjectId, setLiveSubjectId] = useState<string>("");
   const [liveModalOpen, setLiveModalOpen] = useState(false);
   const [editingLive, setEditingLive] = useState<ILiveClass | null>(null);
   const [deletingLive, setDeletingLive] = useState<ILiveClass | null>(null);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const isAdmin = userRole === Role.ADMIN;
+  const isTeacher = userRole === Role.TEACHER;
+
+  console.log("user in live tab", userRole)
 
   const [deleteLive, { isLoading: deletingLiveLoading }] = useDeleteMeetingMutation();
 
@@ -1440,7 +1445,7 @@ export function LiveClassesTab({ courseId, subjects, isAdmin, userName = "Guest"
             {filteredLiveClasses.length} class{filteredLiveClasses.length !== 1 ? "es" : ""}
           </span>
         )}
-        {isAdmin && (
+        {(isAdmin || isTeacher) && (
           <div className="ml-auto">
             <Button size="sm" onClick={() => { setEditingLive(null); setLiveModalOpen(true); }}
               className="h-9 gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold">

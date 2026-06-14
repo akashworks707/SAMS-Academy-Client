@@ -1435,6 +1435,10 @@ export default function ViewCoursePage() {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useUser();
   const isAdmin = user?.role === Role.ADMIN;
+  const role = user?.role?.toUpperCase();
+
+  console.log("user", user)
+
 
   const [activeTab, setActiveTab] = useState<TabKey>("recorded");
 
@@ -1538,7 +1542,7 @@ export default function ViewCoursePage() {
           <LiveClassesTab
             courseId={course?._id ?? ""}
             subjects={subjects}
-            userRole={user?.role}
+            userRole={role}
             userName={user?.email ?? "Guest"}
           />
         )}

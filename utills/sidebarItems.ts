@@ -21,19 +21,6 @@ export const teacherSidebar = [
   },
 ];
 
-// export const adminSidebar = [
-//   {
-//     title: "Admin Management",
-//     items: [
-//       { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboardIcon },
-//       { title: "Courses", url: "/admin/dashboard/courses", icon: BookOpen },
-//       { title: "Live Class", url: "/admin/dashboard/live-class", icon: Video },
-//       { title: "Teachers", url: "/admin/dashboard/teachers", icon: UserCog },
-//       { title: "Students", url: "/admin/dashboard/students", icon: Users },
-//     ],
-//   },
-// ];
-
 
 export const adminSidebar = [
   {
@@ -44,36 +31,23 @@ export const adminSidebar = [
         url: "/admin/dashboard",
         icon: LayoutDashboardIcon,
       },
-      {
-        title: "Classes",
-        url: "/admin/dashboard/classes",
-        icon: BookOpen,
-      },
+
       {
         title: "Courses",
         url: "/admin/dashboard/courses",
         icon: BookMarked,
       },
       {
-        title: "Subjects",
-        url: "/admin/dashboard/subjects",
-        icon: BookMarked,
+        title: "Students",
+        url: "/admin/dashboard/students",
+        icon: Users,
       },
-      // {
-      //   title: "Live Class",
-      //   url: "/admin/dashboard/live-class",
-      //   icon: Video,
-      // },
       {
         title: "Teachers",
         url: "/admin/dashboard/teachers",
         icon: UserCog,
       },
-      {
-        title: "Students",
-        url: "/admin/dashboard/students",
-        icon: Users,
-      },
+
       {
         title: "Enrollments",
         url: "/admin/dashboard/enrollments",
@@ -84,6 +58,17 @@ export const adminSidebar = [
         url: "/admin/dashboard/payments",
         icon: CreditCard,
       },
+      {
+        title: "Classes",
+        url: "/admin/dashboard/classes",
+        icon: BookOpen,
+      },
+      {
+        title: "Subjects",
+        url: "/admin/dashboard/subjects",
+        icon: BookMarked,
+      },
+
       {
         title: "Commission",
         url: "/admin/dashboard/commission",

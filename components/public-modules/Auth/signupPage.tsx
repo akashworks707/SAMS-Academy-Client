@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -140,9 +140,8 @@ function TextField({
         <Input
           type={type}
           placeholder={placeholder}
-          className={`h-9 text-sm rounded border-slate-300 dark:border-slate-600 ${
-            icon ? "pl-8" : "pl-3"
-          }`}
+          className={`h-9 text-sm rounded border-slate-300 dark:border-slate-600 ${icon ? "pl-8" : "pl-3"
+            }`}
           {...rest}
         />
       </div>
@@ -156,6 +155,12 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [picturePreview, setPicturePreview] = useState<string | null>(null);
   const [selectedPicture, setSelectedPicture] = useState<File | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRedirectUrl(params.get("redirect"));
+  }, []);
 
   const schema = createSignupSchema();
   const {
@@ -201,174 +206,102 @@ export default function Signup() {
     }
   };
 
-  // const onSubmit = async (data: SignupFormType) => {
-  //   try {
-  //     const address = {
-  //       division: data.division || "",
-  //       district: data.district || "",
-  //       thana: data.thana || "",
-  //       union: data.union || "",
-  //     };
-
-  //     const payload: Record<string, any> = {
-  //       name: data.name,
-  //       email: data.email,
-  //       phone: data.phone,
-  //       password: data.password,
-  //       role: data.role,
-  //       address,
-  //     };
-
-  //     // Add role-specific fields
-  //     if (data.role === "STUDENT") {
-  //       payload.guardianName = data.guardianName;
-  //       payload.guardianPhone = data.guardianPhone;
-  //       if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
-  //       if (data.section) payload.section = data.section ?? "";
-  //       if (data.roll !== undefined) payload.roll = data.roll;
-  //     }
-
-  //     if (data.role === "TEACHER") {
-  //       payload.qualification = data.qualification;
-  //       if (data.designation) payload.designation = data.designation ?? "";
-  //       if (data.experience !== undefined) payload.experience = data.experience;
-
-  //       if (data.salary !== undefined) payload.salary = data.salary;
-  //       if (data.bio) payload.bio = data.bio ?? "";
-  //       if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth ?? "";
-  //     }
-
-  //     // Handle picture upload
-  //     const pictureFile = selectedPicture;
-
-  //     const formData = new FormData();
-  //     Object.keys(payload).forEach((key) => {
-  //       if (key === "address") {
-  //         formData.append(key, JSON.stringify(payload[key]));
-  //       } else {
-  //         formData.append(key, payload[key]);
-  //       }
-  //     });
-
-  //     if (pictureFile) {
-  //       formData.append("picture", pictureFile);
-  //     }
-
-  //     // Submit to backend
-  //     const res = await fetch(`${config.baseUrl}/user/create-user`, {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-
-  //     const result = await res.json();
-
-  //     if (!res.ok) {
-  //       toast.error(result.message || "Registration failed");
-  //       return;
-  //     }
-
-  //     if (result) {
-  //       toast.success("Registration successful!");
-  //       router.push("/login");
-  //     }
-  //   } catch (err: any) {
-  //     console.error("[signup] Error:", err);
-  //     toast.error(err.message || "Something went wrong");
-  //   }
-  // };
-
-
   const onSubmit = async (data: SignupFormType) => {
-  try {
-    const payload: Record<string, any> = {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      password: data.password,
-      role: data.role,
+    try {
+      const payload: Record<string, any> = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        role: data.role,
 
-      address: {
-        division: data.division || "",
-        district: data.district || "",
-        thana: data.thana || "",
-        union: data.union || "",
-      },
-    };
+        address: {
+          division: data.division || "",
+          district: data.district || "",
+          thana: data.thana || "",
+          union: data.union || "",
+        },
+      };
 
-    // STUDENT
-    if (data.role === "STUDENT") {
-      payload.guardianName = data.guardianName;
-      payload.guardianPhone = data.guardianPhone;
+      // STUDENT
+      if (data.role === "STUDENT") {
+        payload.guardianName = data.guardianName;
+        payload.guardianPhone = data.guardianPhone;
 
-      if (data.dateOfBirth) {
-        payload.dateOfBirth = new Date(data.dateOfBirth).toISOString();
+        if (data.dateOfBirth) {
+          payload.dateOfBirth = new Date(data.dateOfBirth).toISOString();
+        }
+
+        if (data.section) {
+          payload.section = data.section;
+        }
+
+        if (data.roll !== undefined) {
+          payload.roll = data.roll;
+        }
       }
 
-      if (data.section) {
-        payload.section = data.section;
+      // TEACHER
+      if (data.role === "TEACHER") {
+        payload.qualification = data.qualification;
+
+        if (data.designation) {
+          payload.designation = data.designation;
+        }
+
+        if (data.experience !== undefined) {
+          payload.experience = data.experience;
+        }
+
+        if (data.salary !== undefined) {
+          payload.salary = data.salary;
+        }
+
+        if (data.bio) {
+          payload.bio = data.bio;
+        }
+
+        if (data.dateOfBirth) {
+          payload.dateOfBirth = new Date(data.dateOfBirth).toISOString();
+        }
+
+        // Same as CreateTeacherModal
+        payload.assignedSubjects = [];
+        payload.assignedCourses = [];
       }
 
-      if (data.roll !== undefined) {
-        payload.roll = data.roll;
+      const formData = new FormData();
+
+      // IMPORTANT
+      formData.append("data", JSON.stringify(payload));
+
+      if (selectedPicture) {
+        formData.append("picture", selectedPicture);
       }
+
+      const res = await fetch(`${config.baseUrl}/user/create-user`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Registration failed");
+      }
+
+      toast.success("Registration successful!");
+      if (redirectUrl) {
+        router.push(`/login?redirect=${redirectUrl}`);
+        return;
+      } else {
+        router.push("/login");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Something went wrong");
     }
-
-    // TEACHER
-    if (data.role === "TEACHER") {
-      payload.qualification = data.qualification;
-
-      if (data.designation) {
-        payload.designation = data.designation;
-      }
-
-      if (data.experience !== undefined) {
-        payload.experience = data.experience;
-      }
-
-      if (data.salary !== undefined) {
-        payload.salary = data.salary;
-      }
-
-      if (data.bio) {
-        payload.bio = data.bio;
-      }
-
-      if (data.dateOfBirth) {
-        payload.dateOfBirth = new Date(data.dateOfBirth).toISOString();
-      }
-
-      // Same as CreateTeacherModal
-      payload.assignedSubjects = [];
-      payload.assignedCourses = [];
-    }
-
-    const formData = new FormData();
-
-    // IMPORTANT
-    formData.append("data", JSON.stringify(payload));
-
-    if (selectedPicture) {
-      formData.append("picture", selectedPicture);
-    }
-
-    const res = await fetch(`${config.baseUrl}/user/create-user`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      throw new Error(result?.message || "Registration failed");
-    }
-
-    toast.success("Registration successful!");
-    router.push("/login");
-  } catch (err: any) {
-    console.error(err);
-    toast.error(err?.message || "Something went wrong");
-  }
-};
+  };
 
   return (
     <div className="min-h-screen py-6 px-3 bg-slate-200 dark:bg-background">
@@ -717,7 +650,8 @@ export default function Signup() {
           <div className="text-center text-sm">
             Already have an account?{" "}
             <Link
-              href="/login"
+              // href="/login"
+              href={redirectUrl ? `/login?redirect=${redirectUrl}` : "/login"}
               className="text-emerald-600 hover:underline font-medium"
             >
               Login here

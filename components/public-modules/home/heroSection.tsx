@@ -82,7 +82,7 @@ export default function HeroSection() {
     dark:to-slate-950
   "
     >
-      <div className="mx-auto max-w-352 px-4 md:px-6">
+      <div className="mx-auto container relative px-4 md:px-6">
         <ConcentricCircles />
 
         <div className="relative z-10 container mx-auto">

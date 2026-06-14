@@ -1,5 +1,5 @@
-import DashboardOverview from "@/components/dashboard/DashboardOverview";
+import CourseManagementForStudent from "@/components/course/CourseManagementForStudent";
 
 export default function DashboardPage() {
-  return <DashboardOverview />;
+  return <CourseManagementForStudent />;
 }

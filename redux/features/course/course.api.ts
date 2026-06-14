@@ -79,7 +79,12 @@ export interface IEnrollment {
   __v: number;
 }
 
-
+interface GetSingleCourseResponse {
+  success: boolean;
+  data: {
+    result: ICourse;
+  };
+}
 
 export const courseApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -119,7 +124,7 @@ export const courseApi = baseApi.injectEndpoints({
       providesTags: ["COURSES"],
     }),
 
-    getSingleCourse: builder.query<ICourse, string>({
+    getSingleCourse: builder.query<ICourse | { data: { result: ICourse } }, string>({
       query: (slug) => ({
         url: `/course/${slug}`,
         method: "GET",

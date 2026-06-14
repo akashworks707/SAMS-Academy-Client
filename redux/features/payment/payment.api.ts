@@ -33,6 +33,12 @@ export const paymentApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["PAYMENTS"],
         }),
+        initPayment: builder.mutation({
+            query: (enrollmentId: string) => ({
+                url: `/payment/init-payment/${enrollmentId}`,
+                method: "POST",
+            }),
+        })
     }),
 });
 
@@ -41,4 +47,5 @@ export const {
     useGetSinglePaymentQuery,
     useAdminUpdatePaymentMutation,
     useDeletePaymentMutation,
+    useInitPaymentMutation
 } = paymentApi;

@@ -1357,8 +1357,13 @@ export function LiveClassesTab({ courseId, subjects, userRole, userName = "Guest
   const [editingLive, setEditingLive] = useState<ILiveClass | null>(null);
   const [deletingLive, setDeletingLive] = useState<ILiveClass | null>(null);
   const [joiningId, setJoiningId] = useState<string | null>(null);
-  const isAdmin = userRole === Role.ADMIN;
-  const isTeacher = userRole === Role.TEACHER;
+  // const isAdmin = userRole === Role.ADMIN;
+  // const isTeacher = userRole === Role.TEACHER;
+
+  const normalizedRole = userRole?.toUpperCase();
+
+const isAdmin = normalizedRole === "ADMIN";
+const isTeacher = normalizedRole === "TEACHER";
 
   console.log("user in live tab", userRole)
 

@@ -33,6 +33,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const { user, logout } = useUser();
+
+ console.log("user from userContext", user)
+
+
   return (
     <header
       className="
@@ -44,7 +48,7 @@ export default function Navbar() {
     transition-colors duration-300
   "
     >
-      <div className="mx-auto flex h-17.5 max-w-7xl items-center justify-between px-4 md:px-6">
+      <div className="container mx-auto flex h-17.5  items-center justify-between px-4 md:px-6">
         <Link
           href="/"
           className="hover:cursor-pointer flex items-center gap-3 shrink-0"
